@@ -7,16 +7,18 @@ import ChangepasswordPage from "./pages/ChangepasswordPage";
 import SettingsPage from "./pages/SettingsPage";
 import MylistPage from "./pages/MylistPage";
 import LoginPage from "./pages/LoginPage";
+import SigninPage from "./pages/SigninPage";
 
 function AppContent() {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
+  const isLoginPage = location.pathname === "/" || location.pathname === "/login"　|| location.pathname === "/signin";  
 
   if (isLoginPage) {
     return (
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signin" element={<SigninPage />} /> 
       </Routes>
     );
   }
