@@ -89,9 +89,11 @@ def read_items(
     name: Optional[str] = None,
     location: Optional[str] = None,
     is_available: Optional[bool] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = "asc",
     db: Session = Depends(get_db),
 ):
-    items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id, name=name, location=location, is_available=is_available,)
+    items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id, name=name, location=location, is_available=is_available, sort_by=sort_by, sort_order=sort_order,)
     return items
 
 @app.get("/items/{item_id}", response_model=schemas.Item)
