@@ -2,13 +2,17 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from . import crud, models, schemas
+from . import crud, models, schemas, scheduler
 from .database import engine, get_db
+
 
 # データベーステーブルの作成
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# スケジューラを起動
+scheduler.start_scheduler()
 
 #httpメソッド：get（ルートエンドポイント）
 @app.get("/")

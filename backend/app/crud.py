@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from typing import List, Optional
+from datetime import datetime, timedelta
 
 # User CRUDロジック
 def get_user(db: Session, user_id: int):
@@ -165,3 +166,14 @@ def create_search_log(db: Session, search_log: schemas.SearchLogCreate):
     db.commit()
     db.refresh(db_search_log)
     return db_search_log
+
+def deactivate_old_users(db: Session):
+    three_years_ago = datetime.now().year - 3
+    # 例えば 2025年なら 2022年入学以前が対象
+    db.query(models.User).filter(
+        models.User.admission_year <= three_years_ago,
+        models.User.is_active == True  
+    ).update(
+        {models.User.is_active: False}, synchronize_session=False
+    )
+    db.commit()
