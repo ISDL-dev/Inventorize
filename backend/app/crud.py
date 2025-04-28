@@ -78,10 +78,18 @@ def delete_category(db: Session, category_id: int):
 def get_item(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.id == item_id).first()
 
-def get_items(db: Session, skip: int = 0, limit: int = 100, category_id: Optional[int] = None):
+def get_items(db: Session, skip: int = 0, limit: int = 100, category_id: Optional[int] = None, name: Optional[str] = None, location: Optional[str] = None, is_available: Optional[bool] = None):
     query = db.query(models.Item)
     if category_id:
         query = query.filter(models.Item.category_id == category_id)
+    if location is not None:
+        query = query.filter(models.Item.location == location)
+    if is_available is not None:
+        query = query.filter(models.Item.is_available == is_available)
+    
+    if name:
+        query = query.filter(models.Item.name.ilike(f"%{name}%"))
+
     return query.offset(skip).limit(limit).all()
 
 def create_item(db: Session, item: schemas.ItemCreate):
