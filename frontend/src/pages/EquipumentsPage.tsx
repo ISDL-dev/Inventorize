@@ -1,15 +1,38 @@
-import { Box, Heading, Input, Button } from "@chakra-ui/react"; // ← Selectもここでimport
+import { Box, Heading, Input, Button, Spinner } from "@chakra-ui/react"; // ← Selectもここでimport
 import { Table } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+type Item = {
+  id: number;
+  name: string;
+  status: string;
+  registeredAt: string;
+  note: string;
+};
+
 const EquipumentsPage = () => {
+  const [equipuments, setEquipuments] = useState<Item[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
-  const equipuments = [
+  useEffect(() => {
+    fetch("http://localhost:8000/items/")
+      .then((res) => res.json())
+      .then((data) => {
+        setEquipuments(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("取得失敗:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  /*const equipuments = [
     { id: 1, name: "ノートパソコン", status: "貸出可能", registeredAt: "2024-04-01", note: "バッテリー良好" },
     { id: 2, name: "プロジェクター", status: "貸出中", registeredAt: "2024-03-20", note: "リモコン付き" },
     { id: 3, name: "HDMIケーブル", status: "貸出可能", registeredAt: "2024-02-15", note: "2mの長さ" },
@@ -21,7 +44,7 @@ const EquipumentsPage = () => {
     { id: 9, name: "スピーカー", status: "貸出中", registeredAt: "2024-03-15", note: "Bluetooth接続" },
     { id: 10, name: "LANケーブル", status: "貸出可能", registeredAt: "2024-02-20", note: "10m" },
     { id: 11, name: "USBハブ", status: "貸出中", registeredAt: "2024-03-12", note: "4ポート" },
-  ];
+  ];*/
 
   const filteredEquipuments = equipuments.filter(item =>
     item.name.includes(searchTerm) &&
@@ -31,7 +54,6 @@ const EquipumentsPage = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredEquipuments.slice(indexOfFirstItem, indexOfLastItem);
-
   const totalPages = Math.ceil(filteredEquipuments.length / itemsPerPage);
 
   return (
@@ -68,48 +90,54 @@ const EquipumentsPage = () => {
       </Box>
 
       {/* テーブル */}
-      <Table.Root>
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader>名前</Table.ColumnHeader>
-            <Table.ColumnHeader>貸出状況</Table.ColumnHeader>
-            <Table.ColumnHeader>登録日</Table.ColumnHeader>
-            <Table.ColumnHeader>備考</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {currentItems.map((item) => (
-            <Table.Row key={item.id}>
-              <Table.Cell>
-                <Link
-                  to={`/equipuments/${item.id}`}
-                  style={{ color: "blue", textDecoration: "underline" }}
-                >
-                  {item.name}
-                </Link>
-              </Table.Cell>
-              <Table.Cell color={item.status === "貸出中" ? "red.500" : "green.500"}>{item.status}</Table.Cell>
-              <Table.Cell>{item.registeredAt}</Table.Cell>
-              <Table.Cell>{item.note}</Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+      {loading ? (
+        <Spinner size="xl" />
+      ) : (
+        <>
+          <Table.Root>
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>名前</Table.ColumnHeader>
+                <Table.ColumnHeader>貸出状況</Table.ColumnHeader>
+                <Table.ColumnHeader>登録日</Table.ColumnHeader>
+                <Table.ColumnHeader>備考</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {currentItems.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>
+                    <Link
+                      to={`/equipuments/${item.id}`}
+                      style={{ color: "blue", textDecoration: "underline" }}
+                    >
+                      {item.name}
+                    </Link>
+                  </Table.Cell>
+                  <Table.Cell color={item.status === "貸出中" ? "red.500" : "green.500"}>{item.status}</Table.Cell>
+                  <Table.Cell>{item.registeredAt}</Table.Cell>
+                  <Table.Cell>{item.note}</Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
 
-      {/* ページネーション */}
-      <Box mt={6}>
-        {Array.from({ length: totalPages }, (_, index) => (
-          <Button
-            key={index}
-            onClick={() => setCurrentPage(index + 1)}
-            colorScheme={currentPage === index + 1 ? "blue" : "gray"}
-            size="sm"
-            mx={1}
-          >
-            {index + 1}
-          </Button>
-        ))}
-      </Box>
+          {/* ページネーション */}
+          <Box mt={6}>
+            {Array.from({ length: totalPages }, (_, index) => (
+              <Button
+                key={index}
+                onClick={() => setCurrentPage(index + 1)}
+                colorScheme={currentPage === index + 1 ? "blue" : "gray"}
+                size="sm"
+                mx={1}
+              >
+                {index + 1}
+              </Button>
+            ))}
+          </Box>
+        </>
+      )}
     </Box>
   );
 };
