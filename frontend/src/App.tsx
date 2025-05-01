@@ -2,10 +2,9 @@ import { Box, Flex } from "@chakra-ui/react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Sidebar from "./components/ui/Sidebar";
-import EquipmentsPage from "./pages/EquipmentsPage";
+import EquipumentsPage from "./pages/EquipumentsPage";
 import AdminPage from "./pages/AdminPage";
 import ChangepasswordPage from "./pages/ChangepasswordPage";
-import SettingsPage from "./pages/SettingsPage";
 import MylistPage from "./pages/MylistPage";
 import LoginPage from "./pages/LoginPage";
 import SigninPage from "./pages/SigninPage";
@@ -21,6 +20,7 @@ import EditCategoryPage from "./pages/EditCategorypage";
 import EquipmentListPage from "./pages/EquipmentListpage";
 import UserListPage from "./pages/UserListPage";
 import CategoryListPage from "./pages/CategoryListpage";
+import ItemDetailPage from "./pages/ItemDetailPage";
 
 function AppContent() {
   const location = useLocation();
@@ -46,10 +46,10 @@ function AppContent() {
       <Sidebar />
       <Box ml="250px" flex="1" p={8}>
         <Routes>
-          <Route path="/equipuments" element={<EquipmentsPage />} />
+          <Route path="/equipuments" element={<EquipumentsPage />} />
+          <Route path="/equipuments/:id" element={<ItemDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/changepassword" element={<ChangepasswordPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/mylist" element={<MylistPage />} />
           <Route path="/admin/add-equipment" element={<AddEquipumentPage />} />
           <Route path="/edit_equipment/:id" element={<EditEquipumentPage />} />

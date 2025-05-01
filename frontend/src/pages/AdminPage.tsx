@@ -11,8 +11,8 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
-const sectionTitles = ["ユーザ管理", "物品管理", "ジャンル管理"] as const;
-type SectionTitle = typeof sectionTitles[number]; // "ユーザ管理" | "物品管理" | "ジャンル管理"
+const sectionTitles = ["ユーザ管理", "物品管理", "カテゴリ管理"] as const;
+type SectionTitle = typeof sectionTitles[number]; 
 
 const routes: Record<SectionTitle, { add: string; edit: string }> = {
   "ユーザ管理": {
@@ -23,7 +23,7 @@ const routes: Record<SectionTitle, { add: string; edit: string }> = {
     add: "/admin/add-equipment",
     edit: "/list_equipment",
   },
-  "ジャンル管理": {
+  "カテゴリ管理": {
     add: "/admin/add-category",
     edit: "/list_category",
   },

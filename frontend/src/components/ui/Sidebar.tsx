@@ -10,7 +10,6 @@ const Sidebar = () => {
         <Link as={RouterLink} to="/mylist">My List</Link>
         <Link as={RouterLink} to="/admin">Admin</Link>
         <Link as={RouterLink} to="/changepassword">Change Password</Link>
-        <Link as={RouterLink} to="/settings">Settings</Link>
       </VStack>
     </Box>
   );
