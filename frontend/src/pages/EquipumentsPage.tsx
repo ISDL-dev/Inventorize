@@ -3,6 +3,8 @@ import { Table } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
+const API_URL = "http://localhost:8000"
+
 type Item = {
   id: number;
   name: string;
@@ -19,18 +21,26 @@ const EquipumentsPage = () => {
   const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    fetch("http://localhost:8000/items/")
-      .then((res) => res.json())
-      .then((data) => {
-        setEquipuments(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("取得失敗:", err);
-        setLoading(false);
-      });
-  }, []);
+ useEffect(() => {
+  fetch(`${API_URL}/items/`)
+    .then((res) => res.json())
+    .then((data) => {
+      const mapped = data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        status: item.is_available ? "貸出可能" : "貸出中",
+        registeredAt: item.registration_date ? item.registration_date.split("T")[0] : "不明",
+        note: item.notes || "",
+      }));
+      setEquipuments(mapped);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("取得失敗:", err);
+      setLoading(false);
+    });
+}, []);
+
 
   /*const equipuments = [
     { id: 1, name: "ノートパソコン", status: "貸出可能", registeredAt: "2024-04-01", note: "バッテリー良好" },
