@@ -3,6 +3,10 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 
 # User関連のスキーマ
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
 class UserBase(BaseModel):
     name: str
     email: str

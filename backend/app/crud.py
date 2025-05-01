@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, schemas, utils
 from typing import List, Optional
 from datetime import datetime, timedelta
 
@@ -14,16 +14,25 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 def create_user(db: Session, user: schemas.UserCreate):
+    hashed_pw = utils.hash_password(user.password)
     db_user = models.User(
         name=user.name,
         email=user.email,
         admission_year=user.admission_year,
-        password=user.password  
+        password=hashed_pw  
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if not user:
+        return None
+    if not utils.verify_password(password, user.password):
+        return None
+    return user
 
 def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()

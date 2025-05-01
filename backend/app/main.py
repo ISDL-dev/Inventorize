@@ -38,6 +38,14 @@ def test_db(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"データベース接続エラー: {str(e)}")
 
+# ログインのエンドポイント
+@app.post("/login", response_model=schemas.User)
+def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+    db_user = crud.authenticate_user(db, user.email, user.password)
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    return db_user
+
 # ユーザー関連のエンドポイント
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):

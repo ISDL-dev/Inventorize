@@ -1,10 +1,11 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
-from .database import SessionLocal
-from . import crud
+from . import crud, database 
+from apscheduler.triggers.cron import CronTrigger
+
 
 def deactivate_old_users_job():
-    db = SessionLocal()
+    db = database.SessionLocal()
     try:
         crud.deactivate_old_users(db)
         print(f"{datetime.now()}: 古いユーザーを無効化しました。")
