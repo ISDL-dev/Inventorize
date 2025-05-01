@@ -10,6 +10,16 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 #httpメソッド：get（ルートエンドポイント）
 @app.get("/")
 async def read_root():
@@ -86,9 +96,14 @@ def read_items(
     skip: int = 0, 
     limit: int = 100, 
     category_id: Optional[int] = None,
-    db: Session = Depends(get_db)
+    name: Optional[str] = None,
+    location: Optional[str] = None,
+    is_available: Optional[bool] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = "asc",
+    db: Session = Depends(get_db),
 ):
-    items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id)
+    items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id, name=name, location=location, is_available=is_available, sort_by=sort_by, sort_order=sort_order,)
     return items
 
 @app.get("/items/{item_id}", response_model=schemas.Item)
