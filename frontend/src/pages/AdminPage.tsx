@@ -11,6 +11,24 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
+const sectionTitles = ["ユーザ管理", "物品管理", "ジャンル管理"] as const;
+type SectionTitle = typeof sectionTitles[number]; // "ユーザ管理" | "物品管理" | "ジャンル管理"
+
+const routes: Record<SectionTitle, { add: string; edit: string }> = {
+  "ユーザ管理": {
+    add: "/admin/add-user",
+    edit: "/list_user",
+  },
+  "物品管理": {
+    add: "/admin/add-equipment",
+    edit: "/list_equipment",
+  },
+  "ジャンル管理": {
+    add: "/admin/add-category",
+    edit: "/list_category",
+  },
+};
+
 const dummyData = [
   {
     name: "田中太郎",
@@ -35,21 +53,6 @@ const dummyData = [
 const AdminPage = () => {
   const navigate = useNavigate();
 
-  const routes = {
-    "ユーザ管理": {
-      add: "/admin/add-user",
-      edit: "/admin/edit-user",
-    },
-    "物品管理": {
-      add: "/admin/add-equipment",
-      edit: "/list_equipment", 
-    },
-    "ジャンル管理": {
-      add: "/admin/add-category",
-      edit: "/admin/edit-category",
-    },
-  };
-
   return (
     <Box bg="gray.50" minH="100vh" pt={8} pr={8}>
       <Box mb={6}>
@@ -60,7 +63,7 @@ const AdminPage = () => {
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={8}>
         <VStack gap={6} align="stretch">
-          {["ユーザ管理", "物品管理", "ジャンル管理"].map((title) => (
+          {sectionTitles.map((title) => (
             <Box
               key={title}
               p={4}
@@ -82,7 +85,7 @@ const AdminPage = () => {
                   追加
                 </Button>
                 <Button
-                  bg="green.700"
+                  bg="gray.700"
                   _hover={{ bg: "gray.800" }}
                   color="white"
                   size="sm"

@@ -6,8 +6,16 @@ import {
     Text,
     Flex,
   } from "@chakra-ui/react";
+  import { useNavigate } from "react-router-dom";
   
   const AddUserPage = () => {
+    const navigate = useNavigate();
+  
+    const handleAdd = () => {
+      console.log("ユーザ追加完了");
+      navigate("/admin");
+    };
+  
     return (
       <Box p={8}>
         <Flex mb={6}>
@@ -22,30 +30,22 @@ import {
   
         <Box maxW="600px">
           <Box mb={4}>
-            <Text fontWeight="bold" mb={1}>
-              名前：
-            </Text>
+            <Text fontWeight="bold" mb={1}>名前：</Text>
             <Input placeholder="氏名を入力" />
           </Box>
   
           <Box mb={4}>
-            <Text fontWeight="bold" mb={1}>
-              学生ID：
-            </Text>
+            <Text fontWeight="bold" mb={1}>学生ID：</Text>
             <Input placeholder="学生IDを入力" />
           </Box>
   
           <Box mb={4}>
-            <Text fontWeight="bold" mb={1}>
-              Email：
-            </Text>
+            <Text fontWeight="bold" mb={1}>Email：</Text>
             <Input placeholder="メールアドレスを入力" />
           </Box>
   
           <Box mb={4}>
-            <Text fontWeight="bold" mb={1}>
-              Password：
-            </Text>
+            <Text fontWeight="bold" mb={1}>Password：</Text>
             <Input type="password" placeholder="パスワードを入力" />
           </Box>
   
@@ -60,6 +60,7 @@ import {
             bg="blue.500"
             color="white"
             _hover={{ bg: "blue.600" }}
+            onClick={handleAdd}
           >
             追加
           </Button>
