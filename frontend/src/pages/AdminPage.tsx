@@ -42,7 +42,7 @@ const AdminPage = () => {
     },
     "物品管理": {
       add: "/admin/add-equipment",
-      edit: "/admin/edit-equipment",
+      edit: "/list_equipment", 
     },
     "ジャンル管理": {
       add: "/admin/add-category",
@@ -59,7 +59,6 @@ const AdminPage = () => {
       </Box>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={8}>
-        {/* 管理パネル */}
         <VStack gap={6} align="stretch">
           {["ユーザ管理", "物品管理", "ジャンル管理"].map((title) => (
             <Box
@@ -83,7 +82,7 @@ const AdminPage = () => {
                   追加
                 </Button>
                 <Button
-                  bg="gray.700"
+                  bg="green.700"
                   _hover={{ bg: "gray.800" }}
                   color="white"
                   size="sm"
@@ -96,7 +95,6 @@ const AdminPage = () => {
           ))}
         </VStack>
 
-        {/* テーブル表示など（省略 or 実装済） */}
         <Box
           p={4}
           borderWidth="1px"
@@ -108,7 +106,6 @@ const AdminPage = () => {
             申請情報
           </Text>
 
-          {/* 件数 + 検索 */}
           <Flex justify="space-between" mb={4}>
             <Flex align="center">
               <label htmlFor="itemCount" style={{ fontSize: "0.875rem", marginRight: "0.5rem" }}>
@@ -138,7 +135,6 @@ const AdminPage = () => {
             </Flex>
           </Flex>
 
-          {/* テーブルヘッダー */}
           <Flex fontWeight="bold" bg="blue.500" color="white" px={4} py={2}>
             <Box flex="1">Name</Box>
             <Box flex="1">Category</Box>
@@ -146,7 +142,6 @@ const AdminPage = () => {
             <Box flex="1">Remarks</Box>
           </Flex>
 
-          {/* データ行 */}
           {dummyData.map((item, index) => (
             <Flex
               key={index}
