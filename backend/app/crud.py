@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, schemas, utils
 from typing import List, Optional
+from datetime import datetime, timedelta
 
 # User CRUDロジック
 def get_user(db: Session, user_id: int):
@@ -13,16 +14,25 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 def create_user(db: Session, user: schemas.UserCreate):
+    hashed_pw = utils.hash_password(user.password)
     db_user = models.User(
         name=user.name,
         email=user.email,
         admission_year=user.admission_year,
-        password=user.password  
+        password=hashed_pw  
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if not user:
+        return None
+    if not utils.verify_password(password, user.password):
+        return None
+    return user
 
 def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -78,10 +88,27 @@ def delete_category(db: Session, category_id: int):
 def get_item(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.id == item_id).first()
 
-def get_items(db: Session, skip: int = 0, limit: int = 100, category_id: Optional[int] = None):
+def get_items(db: Session, skip: int = 0, limit: int = 100, category_id: Optional[int] = None, name: Optional[str] = None, location: Optional[str] = None, is_available: Optional[bool] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = "asc"):
     query = db.query(models.Item)
     if category_id:
         query = query.filter(models.Item.category_id == category_id)
+    if location is not None:
+        query = query.filter(models.Item.location == location)
+    if is_available is not None:
+        query = query.filter(models.Item.is_available == is_available)
+    
+    if name:
+        query = query.filter(models.Item.name.ilike(f"%{name}%"))
+    
+    if sort_by:
+        sort_column = getattr(models.Item, sort_by, None)
+        if sort_column is not None:
+            if sort_order == "desc":
+                sort_column = sort_column.desc()
+            else:
+                sort_column = sort_column.asc()
+            query = query.order_by(sort_column)
+
     return query.offset(skip).limit(limit).all()
 
 def create_item(db: Session, item: schemas.ItemCreate):
@@ -165,3 +192,14 @@ def create_search_log(db: Session, search_log: schemas.SearchLogCreate):
     db.commit()
     db.refresh(db_search_log)
     return db_search_log
+
+def deactivate_old_users(db: Session):
+    three_years_ago = datetime.now().year - 3
+    # 例えば 2025年なら 2022年入学以前が対象
+    db.query(models.User).filter(
+        models.User.admission_year <= three_years_ago,
+        models.User.is_active == True  
+    ).update(
+        {models.User.is_active: False}, synchronize_session=False
+    )
+    db.commit()
