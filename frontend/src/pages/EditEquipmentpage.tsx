@@ -21,7 +21,7 @@ const dummyData: Record<string, Equipment> = {
 
 const EditEquipumentPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // ← 追加
+  const navigate = useNavigate();
   const data = dummyData[id ?? ""];
 
   if (!data) return <Text p={8}>対象の物品が見つかりません</Text>;
