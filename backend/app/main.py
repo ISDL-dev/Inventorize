@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -10,6 +11,14 @@ from .database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # スケジューラを起動
 scheduler.start_scheduler()
@@ -90,9 +99,14 @@ def read_items(
     skip: int = 0, 
     limit: int = 100, 
     category_id: Optional[int] = None,
-    db: Session = Depends(get_db)
+    name: Optional[str] = None,
+    location: Optional[str] = None,
+    is_available: Optional[bool] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = "asc",
+    db: Session = Depends(get_db),
 ):
-    items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id)
+    items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id, name=name, location=location, is_available=is_available, sort_by=sort_by, sort_order=sort_order,)
     return items
 
 @app.get("/items/{item_id}", response_model=schemas.Item)
