@@ -1,16 +1,16 @@
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from . import crud, models, schemas
+from . import crud, models, schemas, scheduler
 from .database import engine, get_db
+
 
 # データベーステーブルの作成
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# スケジューラを起動
+scheduler.start_scheduler()
 
 #httpメソッド：get（ルートエンドポイント）
 @app.get("/")
