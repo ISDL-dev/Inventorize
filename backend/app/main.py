@@ -117,25 +117,12 @@ def read_items(
     items = crud.get_items(db, skip=skip, limit=limit, category_id=category_id, name=name, location=location, is_available=is_available, sort_by=sort_by, sort_order=sort_order,)
     return items
 
-@app.get("/items/")
-def read_items(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
-):
-    items = db.query(models.Item).offset(skip).limit(limit).all()
-
-    result = []
-    for item in items:
-        result.append({
-            "id": item.id,
-            "name": item.name,
-            "status": "貸出可能" if item.is_available else "貸出中",
-            "registeredAt": item.registration_date.strftime("%Y-%m-%d"),
-            "note": item.notes or ""
-        })
-
-    return result
+@app.get("/items/{item_id}", response_model=schemas.Item)
+def read_item(item_id: int, db: Session = Depends(get_db)):
+    db_item = crud.get_item(db, item_id=item_id)
+    if db_item is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return db_item
 
 # トランザクション関連のエンドポイント
 @app.post("/transactions/", response_model=schemas.ItemTransaction)
