@@ -68,6 +68,7 @@ class ItemUpdate(BaseModel):
 
 class Item(ItemBase):
     id: int
+    is_available: Optional[bool]
     registration_date: datetime
     created_at: datetime
     updated_at: datetime
@@ -115,3 +116,15 @@ class SearchLog(SearchLogBase):
 
     class Config:
         from_attributes = True
+
+class BorrowRequest(BaseModel):
+    item_id: int
+    user_id: int
+    related_transaction_id: Optional[int] = None  # オプションの関連トランザクションID
+    reason: Optional[str] = None  # 例：借りる理由
+    item_condition: Optional[str] = None  # アイテムの状態
+    notes: Optional[str] = None  # 備考
+    type: str = "borrow"  # 'borrow' または 'return' を指定
+
+    class Config:
+        orm_mode = True

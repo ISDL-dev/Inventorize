@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -9,6 +10,14 @@ from .database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #httpメソッド：get（ルートエンドポイント）
 @app.get("/")
@@ -125,4 +134,9 @@ def read_transaction(transaction_id: int, db: Session = Depends(get_db)):
 @app.post("/search-logs/", response_model=schemas.SearchLog)
 def create_search_log(search_log: schemas.SearchLogCreate, db: Session = Depends(get_db)):
     return crud.create_search_log(db=db, search_log=search_log)
+
+# 借用データ用のエンドポイント
+@app.post("/borrow")
+def borrow_item(request: schemas.BorrowRequest, db: Session = Depends(get_db)):
+    return crud.create_transaction(db, request)
 

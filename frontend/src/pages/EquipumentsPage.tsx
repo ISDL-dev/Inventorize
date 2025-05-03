@@ -6,7 +6,8 @@ import { Link } from "react-router-dom";
 type Item = {
   id: number;
   name: string;
-  status: string;
+  //status: string;
+  is_available: boolean;
   registeredAt: string;
   note: string;
 };
@@ -46,14 +47,21 @@ const EquipumentsPage = () => {
     { id: 11, name: "USBハブ", status: "貸出中", registeredAt: "2024-03-12", note: "4ポート" },
   ];*/
 
-  const filteredEquipuments = equipuments.filter(item =>
+  const filteredEquipuments = equipuments.filter((item) =>
     item.name.includes(searchTerm) &&
-    (statusFilter === "" || item.status === statusFilter)
+    (statusFilter === "" ||
+      (statusFilter === "貸出可能" && item.is_available) ||
+      (statusFilter === "貸出中" && !item.is_available))
   );
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredEquipuments.slice(indexOfFirstItem, indexOfLastItem);
+  //const indexOfLastItem = currentPage * itemsPerPage;
+  //const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  //const currentItems = filteredEquipuments.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredEquipuments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const totalPages = Math.ceil(filteredEquipuments.length / itemsPerPage);
 
   return (
@@ -114,8 +122,8 @@ const EquipumentsPage = () => {
                       {item.name}
                     </Link>
                   </Table.Cell>
-                  <Table.Cell color={item.status === "貸出中" ? "red.500" : "green.500"}>{item.status}</Table.Cell>
-                  <Table.Cell>{item.registeredAt}</Table.Cell>
+                  <Table.Cell color={item.is_available ? "green.500" : "red.500"}>{item.is_available ? "貸出可能" : "貸出中"}</Table.Cell>
+                  <Table.Cell>{new Date(item.registeredAt).toLocaleDateString()}</Table.Cell>
                   <Table.Cell>{item.note}</Table.Cell>
                 </Table.Row>
               ))}
@@ -128,7 +136,9 @@ const EquipumentsPage = () => {
               <Button
                 key={index}
                 onClick={() => setCurrentPage(index + 1)}
-                colorScheme={currentPage === index + 1 ? "blue" : "gray"}
+                color="black"
+                bg={currentPage === index + 1 ? "gray.400" : "gray.300"}
+                _hover={{ bg: "gray.400" }}
                 size="sm"
                 mx={1}
               >

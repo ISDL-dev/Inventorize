@@ -68,7 +68,7 @@ class ItemTransaction(Base):
     item = relationship("Item", back_populates="transactions")
     user = relationship("User", back_populates="transactions")
     related_transaction = relationship("ItemTransaction", remote_side=[id], uselist=False)
-    child_transactions = relationship("ItemTransaction", remote_side=[related_transaction_id])
+    child_transactions = relationship("ItemTransaction", remote_side=[related_transaction_id], overlaps="related_transaction")
 
 class SearchLog(Base):
     __tablename__ = "search_log"
