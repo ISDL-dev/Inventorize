@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, Query, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -92,6 +92,12 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.
 
 @app.put("/users/{user_id}", response_model=schemas.User)
 def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # 自分自身 or 管理者かチェック
+    if current_user.id != user_id and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied: only self or admin can update user info"
+        )
     db_user = crud.update_user(db, user_id=user_id, user=user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
