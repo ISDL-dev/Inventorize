@@ -10,6 +10,8 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -24,31 +26,38 @@ const LoginPage = () => {
   
     if (email.trim() !== "" && password.trim() !== "") {
       try {
-        const response = await fetch("http://localhost:8000/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // ← Cookieが必要なら
-          body: JSON.stringify({
+        const response = await axios.post(
+          "http://localhost:8000/login",
+          {
             email: email,
             password: password,
-          }),
-        });
+          },
+          {
+            withCredentials: true, // Cookieが必要な場合
+        }
+        );
   
-        if (response.ok) {
+        if (response.status === 200) {
           navigate("/equipuments");
         } else {
           alert("ログインに失敗しました");
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Login error:", error);
-        alert("サーバーエラーが発生しました");
+  
+        if (error.response?.status === 400) {
+          // 認証失敗（FastAPI 側で 400 を返している場合）
+          alert("メールアドレスまたはパスワードが間違っています");
+        } else {
+          // その他のエラー
+          alert("ログイン中に予期しないエラーが発生しました");
+        }
       }
     } else {
       alert("Emailとパスワードを入力してください");
     }
   };
+  
   
 
   return (
