@@ -16,16 +16,40 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     console.log("Email:", email);
     console.log("Password:", password);
+  
     if (email.trim() !== "" && password.trim() !== "") {
-      navigate("/equipuments");
+      try {
+        const response = await fetch("http://localhost:8000/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // ← Cookieが必要なら
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        });
+  
+        if (response.ok) {
+          navigate("/equipuments");
+        } else {
+          alert("ログインに失敗しました");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("サーバーエラーが発生しました");
+      }
     } else {
       alert("Emailとパスワードを入力してください");
     }
   };
+  
 
   return (
     <Flex width="100vw" height="100vh" justify="center" align="center" bg="gray.700">
