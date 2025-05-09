@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Box, Heading, Image, Text, Button, Spinner } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 //仮データ
 /*const equipuments = [
@@ -31,16 +32,20 @@ const ItemDetailPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/items/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setItem(data);
+    const fetchItem = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/items/${id}`, {
+          withCredentials: true, // Cookieベース認証を使っているなら
+        });
+        setItem(response.data);
+      } catch (error) {
+        console.error("詳細取得エラー:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("詳細取得エラー:", err);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchItem();
   }, [id]);
 
   if(loading) {
