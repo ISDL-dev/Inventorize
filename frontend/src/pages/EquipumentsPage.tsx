@@ -21,16 +21,20 @@ const EquipumentsPage = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    fetch("http://localhost:8000/items/")
-      .then((res) => res.json())
-      .then((data) => {
-        setEquipuments(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+    const fetchEquipments = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/items/", {
+          withCredentials: true, // Cookieベース認証を使っている場合
+        });
+        setEquipuments(response.data);
+      } catch (err) {
         console.error("取得失敗:", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+  
+    fetchEquipments();
   }, []);
 
   /*const equipuments = [
