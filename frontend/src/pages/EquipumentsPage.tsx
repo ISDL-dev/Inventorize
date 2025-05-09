@@ -2,6 +2,7 @@ import { Box, Heading, Input, Button, Spinner } from "@chakra-ui/react"; // ← 
 import { Table } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 type Item = {
   id: number;

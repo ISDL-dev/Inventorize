@@ -32,20 +32,16 @@ const ItemDetailPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItem = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/items/${id}`, {
-          withCredentials: true, // Cookieベース認証を使っているなら
-        });
-        setItem(response.data);
-      } catch (error) {
-        console.error("詳細取得エラー:", error);
-      } finally {
+    fetch(`http://localhost:8000/items/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setItem(data);
         setLoading(false);
-      }
-    };
-
-    fetchItem();
+      })
+      .catch((err) => {
+        console.error("詳細取得エラー:", err);
+        setLoading(false);
+      });
   }, [id]);
 
   if(loading) {

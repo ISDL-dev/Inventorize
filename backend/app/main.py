@@ -112,7 +112,9 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_admin: mode
 
 # カテゴリ関連のエンドポイント
 @app.post("/categories/", response_model=schemas.Category)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db), current_admin: models.User = Depends(get_current_admin_user)):
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db), 
+                    # current_admin: models.User = Depends(get_current_admin_user)
+                    ):
     return crud.create_category(db=db, category=category)
 
 @app.get("/categories/", response_model=List[schemas.Category])
@@ -129,7 +131,9 @@ def read_category(category_id: int, db: Session = Depends(get_db), current_user:
 
 # アイテム関連のエンドポイント
 @app.post("/items/", response_model=schemas.Item)
-def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db), current_admin: models.User = Depends(get_current_admin_user)):
+def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db), 
+                # current_admin: models.User = Depends(get_current_admin_user)
+                ):
     return crud.create_item(db=db, item=item)
 
 @app.get("/items/", response_model=List[schemas.Item])
