@@ -2,7 +2,7 @@ import { Box, Button, Input, VStack, Text, Heading, Flex } from "@chakra-ui/reac
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const SignInPage = () => {
+const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const SignInPage = () => {
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim() !== "" && password.trim() !== "") {
-      console.log("Sign in successful");
+      console.log("Sign up successful");
       navigate("/equipuments");
     } else {
       alert("Emailとパスワードを入力してください");
@@ -39,7 +39,7 @@ const SignInPage = () => {
           fontSize="2xl"
           color="teal.200"
         >
-          サインイン
+          サインアップ
         </Heading>
         <form onSubmit={handleSignIn}>
           <VStack spacing={4}>
@@ -76,4 +76,4 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default SignUpPage;
