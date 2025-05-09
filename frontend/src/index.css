@@ -24,10 +24,8 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
   padding: 0;
-  place-items: center;
-  min-width: 320px;
+  width: 100%;   /* ←ここ重要！！320pxじゃなく100%にする */
   min-height: 100vh;
 }
 
@@ -66,4 +64,11 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+body, #root {
+  text-align: left !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }

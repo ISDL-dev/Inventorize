@@ -1,80 +1,110 @@
 import {
   Box,
   Button,
-  FormControl,
-  FormLabel,
   Input,
-  Link,
-  Text,
   VStack,
+  Text,
   Heading,
-} from "@chakra-ui/react"
-import { useState } from "react"
+  Flex,
+  Link,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Email:", email)
-    console.log("Password:", password)
-    // ログイン処理をここに
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    console.log("Email:", email);
+    console.log("Password:", password);
+  
+    if (email.trim() !== "" && password.trim() !== "") {
+      try {
+        const response = await fetch("http://localhost:8000/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // ← Cookieが必要なら
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        });
+  
+        if (response.ok) {
+          navigate("/equipuments");
+        } else {
+          alert("ログインに失敗しました");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("サーバーエラーが発生しました");
+      }
+    } else {
+      alert("Emailとパスワードを入力してください");
+    }
+  };
+  
 
   return (
-    <Box
-      minH="100vh"
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      bg="gray.50"
-    >
-      <Box
-        p={8}
-        maxW="400px"
-        w="100%"
-        bg="white"
-        borderRadius="md"
-        boxShadow="md"
-      >
-        <Heading size="lg" mb={6} textAlign="center">
-          ログイン
+    <Flex width="100vw" height="100vh" justify="center" align="center" bg="gray.700">
+      <Box p={10} bg="gray.800" borderRadius="md" boxShadow="2xl" w="full" maxW="400px">
+        <Heading mb={6} textAlign="center" fontSize="2xl" color="teal.200">
+          物品管理システム
         </Heading>
         <form onSubmit={handleSubmit}>
           <VStack spacing={4}>
-            <FormControl id="email" isRequired>
-              <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                placeholder="mikilabアカウント"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </FormControl>
-            <FormControl id="password" isRequired>
-              <FormLabel>パスワード</FormLabel>
-              <Input
-                type="password"
-                placeholder="パスワードを入力"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </FormControl>
-            <Button type="submit" colorScheme="blue" width="full">
-              ログイン
+            <Input
+              placeholder="student_id"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              bg="gray.600"
+              color="white"
+              _placeholder={{ color: "gray.300" }}
+            />
+            <Input
+              placeholder="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              bg="gray.600"
+              color="white"
+              _placeholder={{ color: "gray.300" }}
+            />
+            <Button
+              type="submit"
+              bg="red.400"
+              _hover={{ bg: "red.500" }}
+              color="white"
+              w="full"
+            >
+              Login
             </Button>
-            <Text fontSize="sm">
-              パスワードを忘れた方は{" "}
-              <Link color="blue.500" href="/forgot-password">
-                こちら
-              </Link>
-            </Text>
+            {/* リンク追加 */}
+            <Box textAlign="center">
+              <Text fontSize="sm" color="gray.300">
+                サインインがまだの方は{" "}
+                <Link color="teal.300" onClick={() => navigate("/signin")}>
+                  こちら
+                </Link>
+              </Text>
+              <Text fontSize="sm" color="gray.300" mt={2}>
+                パスワードを忘れた方は{" "}
+                <Link color="teal.300" onClick={() => navigate("/forgot-password")}>
+                  こちら
+                </Link>
+              </Text>
+            </Box>
           </VStack>
         </form>
       </Box>
-    </Box>
-  )
-}
+    </Flex>
+  );
+};
 
-export default LoginPage
+export default LoginPage;

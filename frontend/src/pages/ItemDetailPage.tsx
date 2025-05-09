@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Heading, Image, Text, Button } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Heading, Image, Text, Button, Spinner } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 
 //仮データ
-const equipuments = [
+/*const equipuments = [
     { id: 1, name: "ノートパソコン", imageUrl: "/images/laptop.jpg", location: "棚A" },
     { id: 2, name: "プロジェクター", imageUrl: "/images/projector.jpg", location: "棚B" },
     { id: 3, name: "HDMIケーブル", imageUrl: "/images/hdmi.jpg", location: "棚C" },
@@ -15,14 +15,37 @@ const equipuments = [
     { id: 9, name: "スピーカー", imageUrl: "/images/supi-ka-.jpg", location: "棚I" },
     { id: 10, name: "LANケーブル", imageUrl: "/images/lan.jpg", location: "棚J" },
     { id: 11, name: "USBハブ", imageUrl: "/images/usb.jpg", location: "棚K" },
-  ];
+  ];*/
+type Item = {
+  id: number;
+  name: string;
+  imageUrl: string;
+  location: string;
+};
 
 const ItemDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const item = equipuments.find((eq) => eq.id === Number(id));
   const navigate = useNavigate();
+  const [item, setItem] = useState<Item | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    fetch(`http://localhost:8000/items/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setItem(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("詳細取得エラー:", err);
+        setLoading(false);
+      });
+  }, [id]);
+
+  if(loading) {
+    return <Spinner size="xl" />
+  }
   if(!item) {
     return <Text>指示された物品が見つかりません</Text>
   }
@@ -32,13 +55,12 @@ const ItemDetailPage = () => {
       <Heading mb={4}>{item.name}</Heading>
       
       {/* 画像（クリックで拡大） */}
-      <Image src={item.imageUrl} alt={item.name} boxSize="300px" objectFit="cover" mb={4} cursor="pointer" onClick={() => setIsZoomed(true)} onError={(e) => {(e.target as HTMLImageElement).src = "/images/noImage.jpg"}}/>
+      <Image src={item.imageUrl || "/images/noImage.jpg"} alt={item.name} boxSize="300px" objectFit="cover" mb={4} cursor="pointer" onClick={() => setIsZoomed(true)} onError={(e) => {(e.target as HTMLImageElement).src = "/images/noImage.jpg"}}/>
 
       <Text fontSize="lg">保管場所: {item.location}</Text>
-      {/* ここでIDに応じた詳細データをAPIから取得する */}
 
       {/* 戻るボタン */}
-      <Button mt={6} onClick={() => navigate("/equipuments")} color="black" bg="gray.300">
+      <Button mt={6} onClick={() => navigate("/equipuments")} color="black" bg="gray.300" _hover={{ bg: "gray.400"}}>
          戻る（Equipumentsページに移動）
       </Button>
 
