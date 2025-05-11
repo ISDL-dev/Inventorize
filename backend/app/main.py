@@ -138,7 +138,9 @@ def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     return categories
 
 @app.get("/categories/{category_id}", response_model=schemas.Category)
-def read_category(category_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def read_category(category_id: int, db: Session = Depends(get_db),
+                #   current_user: models.User = Depends(get_current_user)
+                  ):
     db_category = crud.get_category(db, category_id=category_id)
     if db_category is None:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -150,6 +152,13 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db),
                 # current_admin: models.User = Depends(get_current_admin_user)
                 ):
     return crud.create_item(db=db, item=item)
+
+@app.put("/items/{item_id}", response_model=schemas.Item)
+def update_item(item_id: int, item: schemas.ItemUpdate, db: Session = Depends(get_db)):
+    db_item = crud.update_item(db, item_id=item_id, item=item)
+    if db_item is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return db_item
 
 @app.get("/items/", response_model=List[schemas.Item])
 def read_items(
@@ -167,7 +176,9 @@ def read_items(
     return items
 
 @app.get("/items/{item_id}", response_model=schemas.Item)
-def read_item(item_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def read_item(item_id: int, db: Session = Depends(get_db),
+            #   current_user: models.User = Depends(get_current_user)
+              ):
     db_item = crud.get_item(db, item_id=item_id)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
