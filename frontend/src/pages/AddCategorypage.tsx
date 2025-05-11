@@ -99,7 +99,7 @@ import {
         <Box maxW="600px">
           <Box mb={4}>
             <Text fontWeight="bold" mb={1}>カテゴリー名：</Text>
-            <Input placeholder="カテゴリー名を入力" value={categoryName} onChange={(e) => setCategoryName(e.target.value)}/>
+            <Input placeholder="カテゴリー名を入力" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} bg="white"/>
           </Box>
   
           <Button

@@ -131,7 +131,9 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
         raise HTTPException(status_code=500, detail=f"予期しないエラーが発生しました: {str(e)}")
 
 @app.get("/categories/", response_model=List[schemas.Category])
-def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), 
+                    # current_user: models.User = Depends(get_current_user)
+                    ):
     categories = crud.get_categories(db, skip=skip, limit=limit)
     return categories
 
