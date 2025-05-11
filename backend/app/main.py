@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError #追加
 from typing import List, Optional
 from datetime import timedelta
 
@@ -112,10 +113,22 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_admin: mode
 
 # カテゴリ関連のエンドポイント
 @app.post("/categories/", response_model=schemas.Category)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db), 
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)
                     # current_admin: models.User = Depends(get_current_admin_user)
                     ):
-    return crud.create_category(db=db, category=category)
+    try:
+        return crud.create_category(db=db, category=category)
+    except IntegrityError as e:
+        error_str = str(e)
+        if "Duplicate entry" in error_str and "category.name" in error_str:
+            raise HTTPException(
+                status_code=400,
+                detail="このカテゴリー名は既に使用されています。別の名前を選択してください。"
+            )
+        raise HTTPException(status_code=400, detail=f"データベースエラーが発生しました: {error_str}")
+    except Exception as e:
+        print(f"予期しないエラー: {str(e)}")  # サーバーログにエラーを出力
+        raise HTTPException(status_code=500, detail=f"予期しないエラーが発生しました: {str(e)}")
 
 @app.get("/categories/", response_model=List[schemas.Category])
 def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
