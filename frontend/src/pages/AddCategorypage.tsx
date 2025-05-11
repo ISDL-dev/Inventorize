@@ -5,8 +5,9 @@ import {
     Input,
     Text,
     Flex,
+    Link,
   } from "@chakra-ui/react";
-  import { useNavigate } from "react-router-dom";
+  import { useNavigate, Link as RouterLink } from "react-router-dom";
   import {useState} from "react";
   import axios from "axios";
 
@@ -20,12 +21,10 @@ import {
     const navigate = useNavigate();
   
     const handleAdd = async () => {
-      // エラーと成功のステートをリセット
       setError("");
       setSuccess(false);
       console.log("API URL:", import.meta.env.VITE_API_URL);
 
-      // フォームが空の場合
       if(!categoryName.trim()) {
         setError("カテゴリー名を入力してください");
         return;
@@ -34,7 +33,6 @@ import {
       setIsLoading(true);
 
       try{
-        // AxiosでのAPIリクエスト
         await axios.post(
           `${API_URL}/categories/`, 
         { name: categoryName },
@@ -43,14 +41,16 @@ import {
         }
         )
 
-        // 成功時の処理
         setSuccess(true);
         console.log("カテゴリー追加完了");
+        
+        // 入力フィールドをクリアして、次のカテゴリを追加できるようにする
+        setCategoryName("");
 
-        // 一定時間後にリダイレクト（ユーザーが成功メッセージを確認できるように）
+        // 3秒後に成功メッセージを消す
         setTimeout(() => {
-          navigate("/admin");
-        }, 2000);
+          setSuccess(false);
+        }, 3000);
 
       } catch (error){
         console.error("カテゴリー追加エラー:", error);
@@ -77,9 +77,18 @@ import {
     return (
       <Box p={8}>
         <Flex mb={6}>
-          <Text fontSize="lg" fontWeight="bold" color="gray.500" mr={2}>
+          <Link 
+            as={RouterLink}
+            to="/admin"
+            fontSize="lg"
+            fontWeight="bold"
+            color="gray.400"
+            textDecoration="underline"
+            mr={2}
+            _hover={{ color: "blue.500", textDecoration: "underline" }}
+          >
             Admin
-          </Text>
+          </Link>
           <Text color="gray.400">/ Add Category</Text>
         </Flex>
   
@@ -100,24 +109,24 @@ import {
             onClick={handleAdd}
             isLoading={isLoading}
             loadingText="追加中..."
-            isDisabled={success}
+            isDisabled={isLoading}
             mb={4}
           >
             追加
           </Button>
         </Box>
 
-        {/* エラーメッセージ - Alert の代わりに Box を使用 */}
+        {/* エラーメッセージ Alertが使えないためBoxを使用 */}
         {error && (
           <Box p={3} bg="red.100" color="red.800" borderRadius="md" mb={4}>
             {error}
           </Box>
         )}
 
-        {/* 成功メッセージ - Alert の代わりに Box を使用 */}
+        {/* 成功メッセージ Alertが使えないためBoxを使用 */}
         {success && (
           <Box p={3} bg="green.100" color="green.800" borderRadius="md" mb={4}>
-            カテゴリーが正常に追加されました。リダイレクトします...
+            カテゴリーが正常に追加されました。
           </Box>
         )}
 
