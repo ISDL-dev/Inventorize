@@ -118,6 +118,7 @@ const EquipmentListPage = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           flex="1"
+          bg="white"
         />
         
         <Box>

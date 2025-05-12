@@ -199,7 +199,7 @@ const EditEquipumentPage = () => {
         >
           Equipment List
         </Link>
-        <Text color="gray.400">/ Edit</Text>
+        <Text color="gray.400">/ Edit Equipment</Text>
       </Flex>
     
       <Heading size="md" mb={6}>
@@ -218,6 +218,7 @@ const EditEquipumentPage = () => {
           <Input 
             value={name} 
             onChange={(e) => setName(e.target.value)} 
+            bg="white"
           />
         </Box>
 
@@ -270,6 +271,7 @@ const EditEquipumentPage = () => {
           <Input 
             value={location} 
             onChange={(e) => setLocation(e.target.value)} 
+            bg="white"
           />
         </Box>
 
@@ -278,6 +280,7 @@ const EditEquipumentPage = () => {
           <Input 
             value={notes} 
             onChange={(e) => setNotes(e.target.value)} 
+            bg="white"
           />
         </Box>
 
