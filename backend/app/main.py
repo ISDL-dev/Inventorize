@@ -129,6 +129,43 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
     except Exception as e:
         print(f"予期しないエラー: {str(e)}")  # サーバーログにエラーを出力
         raise HTTPException(status_code=500, detail=f"予期しないエラーが発生しました: {str(e)}")
+    
+@app.put("/categories/{category_id}", response_model=schemas.Category)
+def update_category(category_id: int, category: schemas.CategoryUpdate, db: Session = Depends(get_db)):
+    try:
+        # カテゴリが存在するか確認
+        db_category = crud.get_category(db, category_id=category_id)
+        if db_category is None:
+            raise HTTPException(status_code=404, detail="カテゴリが見つかりません")
+            
+        # カテゴリ名の重複チェック
+        if category.name:
+            existing_category = db.query(models.Category).filter(
+                models.Category.name == category.name,
+                models.Category.id != category_id
+            ).first()
+            
+            if existing_category:
+                raise HTTPException(
+                    status_code=400,
+                    detail="このカテゴリー名は既に使用されています。別の名前を選択してください。"
+                )
+                
+        # カテゴリを更新
+        updated_category = crud.update_category(db, category_id=category_id, category=category)
+        return updated_category
+        
+    except IntegrityError as e:
+        error_str = str(e)
+        if "Duplicate entry" in error_str and "category.name" in error_str:
+            raise HTTPException(
+                status_code=400,
+                detail="このカテゴリー名は既に使用されています。別の名前を選択してください。"
+            )
+        raise HTTPException(status_code=400, detail=f"データベースエラーが発生しました: {error_str}")
+    except Exception as e:
+        print(f"予期しないエラー: {str(e)}")  # サーバーログにエラーを出力
+        raise HTTPException(status_code=500, detail=f"予期しないエラーが発生しました: {str(e)}")
 
 @app.get("/categories/", response_model=List[schemas.Category])
 def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), 
