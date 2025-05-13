@@ -1,8 +1,15 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
+from enum import Enum
 
 # User関連のスキーマ
+class GradeEnum(str, Enum):
+    U4 = "U4"
+    M1 = "M1"
+    M2 = "M2"
+    OB_OG = "OB_OG"
+
 class UserLogin(BaseModel):
     email: str
     password: str
@@ -10,7 +17,7 @@ class UserLogin(BaseModel):
 class UserBase(BaseModel):
     name: str
     email: str
-    admission_year: Optional[int] = None
+    grade: GradeEnum
 
 class UserCreate(UserBase):
     password: str
@@ -18,7 +25,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
-    admission_year: Optional[int] = None
+    grade: GradeEnum
     is_admin: Optional[bool] = None
     is_active: Optional[bool] = None
 

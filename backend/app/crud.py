@@ -18,7 +18,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     db_user = models.User(
         name=user.name,
         email=user.email,
-        admission_year=user.admission_year,
+        grade=user.grade,
         password=hashed_pw  
     )
     db.add(db_user)
@@ -194,10 +194,9 @@ def create_search_log(db: Session, search_log: schemas.SearchLogCreate):
     return db_search_log
 
 def deactivate_old_users(db: Session):
-    three_years_ago = datetime.now().year - 3
-    # 例えば 2025年なら 2022年入学以前が対象
+    # OB_OGなら非アクティブに
     db.query(models.User).filter(
-        models.User.admission_year <= three_years_ago,
+        models.User.grade.in_([models.GradeEnum.OB_OG]),  
         models.User.is_active == True  
     ).update(
         {models.User.is_active: False}, synchronize_session=False
