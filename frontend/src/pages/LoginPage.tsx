@@ -69,7 +69,7 @@ const LoginPage = () => {
         <form onSubmit={handleSubmit}>
           <VStack spacing={4}>
             <Input
-              placeholder="student_id"
+              placeholder="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               bg="gray.600"
@@ -98,7 +98,7 @@ const LoginPage = () => {
             <Box textAlign="center">
               <Text fontSize="sm" color="gray.300">
                 サインインがまだの方は{" "}
-                <Link color="teal.300" onClick={() => navigate("/signin")}>
+                <Link color="teal.300" onClick={() => navigate("/signup")}>
                   こちら
                 </Link>
               </Text>
