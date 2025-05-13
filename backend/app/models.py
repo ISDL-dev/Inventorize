@@ -1,15 +1,22 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+import enum
 
 from .database import Base
+
+class GradeEnum(str, enum.Enum):
+    U4 = "U4"
+    M1 = "M1"
+    M2 = "M2"
+    OB_OG = "OB_OG"
 
 class User(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    admission_year = Column(Integer)
+    grade = Column(Enum(GradeEnum), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     is_admin = Column(Boolean, default=False)
@@ -36,7 +43,7 @@ class Item(Base):
     __tablename__ = "item"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), unique=True, nullable=False)
     category_id = Column(Integer, ForeignKey("category.id", ondelete="SET NULL"))
     is_available = Column(Boolean, default=True)
     location = Column(String(255))
