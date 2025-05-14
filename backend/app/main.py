@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError #追加
 from typing import List, Optional
 from datetime import timedelta
+from contextlib import asynccontextmanager
 
 from . import crud, models, schemas, scheduler
 from .database import engine, get_db
@@ -14,7 +15,16 @@ from .utils import get_current_user, create_access_token, get_current_admin_user
 # データベーステーブルの作成
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+# スケジューラを起動
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 起動時
+    scheduler.start_scheduler()
+    print("[起動完了] テーブル作成＆スケジューラ起動")
+    yield
+    # 終了時（必要なら shutdown 処理をここに）
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,8 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# スケジューラを起動
-scheduler.start_scheduler()
+
+
 
 #httpメソッド：get（ルートエンドポイント）
 @app.get("/")
@@ -249,4 +259,3 @@ def read_transaction(transaction_id: int, db: Session = Depends(get_db), current
 @app.post("/search-logs/", response_model=schemas.SearchLog)
 def create_search_log(search_log: schemas.SearchLogCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return crud.create_search_log(db=db, search_log=search_log)
-
