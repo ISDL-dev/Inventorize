@@ -5,6 +5,8 @@ import {
   VStack,
   Heading,
   Flex,
+  Text,
+  HStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +14,7 @@ import axios from "axios";
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
-  const [admissionYear, setAdmissionYear] = useState(""); // 年を文字列で受け取る
+  const [grade, setGrade] = useState(""); // ← ここは選択ボタンで設定
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ const SignUpPage = () => {
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!name || !admissionYear || !email || !password) {
+    if (!name || !grade || !email || !password) {
       alert("すべての項目を入力してください");
       return;
     }
@@ -29,7 +31,7 @@ const SignUpPage = () => {
       name,
       email,
       password,
-      admission_year: parseInt(admissionYear), // 数値として送信
+      grade,
     };
 
     try {
@@ -38,7 +40,7 @@ const SignUpPage = () => {
       alert(`サインアップ成功．ようこそ、${res.data.name} さん`);
       navigate("/equipuments");
     } catch (error: any) {
-      if (error.response && error.response.data && error.response.data.detail) {
+      if (error.response?.data?.detail) {
         alert(`サインアップ失敗: ${error.response.data.detail}`);
       } else {
         alert("通信エラー: " + error.message);
@@ -62,15 +64,22 @@ const SignUpPage = () => {
               color="white"
               _placeholder={{ color: "gray.300" }}
             />
-            <Input
-              placeholder="研究室に配属された年（例: 2023）"
-              value={admissionYear}
-              onChange={(e) => setAdmissionYear(e.target.value)}
-              type="number"
-              bg="gray.600"
-              color="white"
-              _placeholder={{ color: "gray.300" }}
-            />
+            <Box w="full">
+              <Text mb={2} color="gray.200">学年を選択：</Text>
+              <HStack spacing={3} wrap="wrap">
+                {["U4", "M1", "M2", "OB_OG"].map((level) => (
+                  <Button
+                    key={level}
+                    onClick={() => setGrade(level)}
+                    colorScheme={grade === level ? "blue" : "gray"}
+                    variant={grade === level ? "solid" : "outline"}
+                    size="sm"
+                  >
+                    {level}
+                  </Button>
+                ))}
+              </HStack>
+            </Box>
             <Input
               placeholder="メールアドレス"
               value={email}
@@ -81,9 +90,9 @@ const SignUpPage = () => {
             />
             <Input
               placeholder="パスワード"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              type="password"
               bg="gray.600"
               color="white"
               _placeholder={{ color: "gray.300" }}
