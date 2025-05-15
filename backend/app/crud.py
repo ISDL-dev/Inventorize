@@ -193,6 +193,17 @@ def create_search_log(db: Session, search_log: schemas.SearchLogCreate):
     db.refresh(db_search_log)
     return db_search_log
 
+def promote_all_users_grades(db: Session):
+    users = db.query(models.User).all()
+    for user in users:
+        if user.grade == models.GradeEnum.U4:
+            user.grade = models.GradeEnum.M1
+        elif user.grade == models.GradeEnum.M1:
+            user.grade = models.GradeEnum.M2
+        elif user.grade == models.GradeEnum.M2:
+            user.grade = models.GradeEnum.OB_OG
+    db.commit()
+
 def deactivate_old_users(db: Session):
     # OB_OGなら非アクティブに
     db.query(models.User).filter(
