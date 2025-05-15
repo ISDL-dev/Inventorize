@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError #追加
+from sqlalchemy.exc import IntegrityError 
 from typing import List, Optional
 from datetime import timedelta
 from contextlib import asynccontextmanager
@@ -33,9 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-
 
 #httpメソッド：get（ルートエンドポイント）
 @app.get("/")
