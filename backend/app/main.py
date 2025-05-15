@@ -20,7 +20,6 @@ models.Base.metadata.create_all(bind=engine)
 async def lifespan(app: FastAPI):
     # 起動時
     scheduler.start_scheduler()
-    print("[起動完了] テーブル作成＆スケジューラ起動")
     yield
     # 終了時（必要なら shutdown 処理をここに）
 
