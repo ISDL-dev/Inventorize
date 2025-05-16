@@ -10,3 +10,4 @@ apscheduler
 bcrypt
 python-jose
 pytz
+itsdangerous

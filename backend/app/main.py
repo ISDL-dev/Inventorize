@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from . import crud, models, schemas, scheduler
 from .database import engine, get_db
-from .utils import get_current_user, create_access_token, get_current_admin_user
+from .utils import get_current_user, create_access_token, get_current_admin_user, send_reset_email, hash_password, verify_reset_token
 
 
 # データベーステーブルの作成
@@ -64,7 +64,7 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         httponly=True,
         secure=False,  # 本番はTrue（HTTPS必須）
         samesite="Lax",
-        max_age=60 * 60,
+        max_age=120 * 60,
     )
 # secure=False：HTTPでもHTTPSでもクッキーが送信される（開発環境向け）
 # secure=True：HTTPS通信時のみクッキーがブラウザに送られる（本番環境向け）
@@ -255,3 +255,27 @@ def read_transaction(transaction_id: int, db: Session = Depends(get_db), current
 @app.post("/search-logs/", response_model=schemas.SearchLog)
 def create_search_log(search_log: schemas.SearchLogCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return crud.create_search_log(db=db, search_log=search_log)
+
+@app.post("/forgot-password")
+def forgot_password(email: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_email(db, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="登録されたメールアドレスが見つかりません")
+
+    send_reset_email(user.email)
+    return {"message": "リセットリンクを送信しました。"}
+
+@app.post("/reset-password")
+def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    try:
+        email = verify_reset_token(token)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="トークンが無効または期限切れです")
+
+    user = crud.get_user_by_email(db, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+
+    user.hashed_password = hash_password(new_password)
+    db.commit()
+    return {"message": "パスワードをリセットしました"}
