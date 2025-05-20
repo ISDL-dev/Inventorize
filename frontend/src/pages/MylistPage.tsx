@@ -1,65 +1,111 @@
-import { Box, Heading, Text, Image, VStack, Button } from "@chakra-ui/react";
-import { Link, useLocation } from "react-router-dom";
+import { Box, Heading, Text, Button, Flex } from "@chakra-ui/react";
+import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
-//ダミーデータ
-/*const myItems = [
-  {
-    id: 1,
-    name: "ノートパソコン",
-    image_path: "/laptop.jpg",
-    requestDate: "2025-04-20",
-    status: "承認待ち",
-  },
-  {
-    id: 2,
-    name: "プロジェクター",
-    image_path: "/projector.jpg",
-    requestDate: "2025-04-18",
-    status: "承認済み",
-  },
-];*/
-
-// 取引データの型定義
 interface Transaction {
   id: number;
   name: string;
-  image_path: string;
   transaction_date: string;
   status: string;
 }
 
+interface Rental {
+  id: number;
+  name: string;
+  return_deadline: string;
+}
+
+interface History {
+  id: number;
+  name: string;
+  returned_date: string;
+}
+
+const TableHeader = ({ headers }: { headers: string[] }) => (
+  <Flex
+    px={4}
+    py={2}
+    bg="gray.200"
+    fontWeight="bold"
+    borderTopRadius="md"
+    borderBottom="1px solid #ccc"
+  >
+    {headers.map((header, idx) => (
+      <Box key={idx} flex={1} textAlign="center">
+        {header}
+      </Box>
+    ))}
+  </Flex>
+);
+
+const TableRow = ({ columns }: { columns: (string | JSX.Element)[] }) => (
+  <Flex px={4} py={2} bg="gray.50" borderBottom="1px solid #eee" alignItems="center">
+    {columns.map((col, idx) => (
+      <Box key={idx} flex={1} textAlign="center">
+        {col}
+      </Box>
+    ))}
+  </Flex>
+);
+
 const MylistPage = () => {
   const location = useLocation();
-  const newItem = location.state;
+  const newItem = location.state as Transaction | undefined;
   const [items, setItems] = useState<Transaction[]>([]);
+  const [rentals, setRentals] = useState<Rental[]>([]);
+  const [history, setHistory] = useState<History[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // fetchを使用してAPIからデータを取得
-    fetch("http://localhost:8000/transactions/?user_id=999")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("取引データの取得に失敗しました。");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setItems(data); // 取得したデータをitemsに設定
-      })
-      .catch((err) => {
-        setError(err.message);
-        console.error("取引データ取得エラー:", err);
-      });
+    const fetchData = async () => {
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        setError("ユーザー情報が見つかりません。ログインし直してください。");
+        return;
+      }
 
-    if (newItem) {
-      setItems((prev) => {
-        if (!prev.find((item) => item.id === newItem.id)) {
-          return [...prev, newItem];
+      try {
+        const res = await axios.get("http://localhost:8000/transactions/", {
+          params: { user_id: userId },
+          withCredentials: true,
+        });
+        let transactions: Transaction[] = res.data;
+        if (newItem && !transactions.find((item) => item.id === newItem.id)) {
+          transactions = [...transactions, newItem];
         }
-        return prev;
-      });
-    }
+        setItems(transactions);
+
+        const rentalRes = await axios.get("http://localhost:8000/transactions/", {
+          params: { user_id: userId, status: "借用中" },
+          withCredentials: true,
+        });
+        setRentals(
+          rentalRes.data.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            return_deadline: t.return_deadline,
+          }))
+        );
+
+        const historyRes = await axios.get("http://localhost:8000/transactions/", {
+          params: { user_id: userId, status: "返却済み" },
+          withCredentials: true,
+        });
+        setHistory(
+          historyRes.data.map((h: any) => ({
+            id: h.id,
+            name: h.name,
+            returned_date: h.returned_date,
+          }))
+        );
+      } catch (err: any) {
+        console.error("データ取得エラー:", err);
+        setError(err.response?.data?.detail || "データの取得に失敗しました。");
+      }
+    };
+
+    fetchData();
   }, [newItem]);
 
   const handleCancel = (id: number) => {
@@ -69,55 +115,99 @@ const MylistPage = () => {
     }
   };
 
+  const handleReturn = async (transactionId: number) => {
+    const confirmed = window.confirm("この物品を返却しますか？");
+    if (!confirmed) return;
+
+    try {
+      await axios.post(
+        `http://localhost:8000/return/${transactionId}`,
+        {},
+        { withCredentials: true }
+      );
+      setRentals((prev) => prev.filter((r) => r.id !== transactionId));
+      alert("返却が完了しました。");
+    } catch (err) {
+      alert("返却に失敗しました。");
+      console.error("返却エラー:", err);
+    }
+  };
+
   return (
     <Box p={6}>
       <Heading mb={4}>Mylistページ</Heading>
-      <p>自身の申請済み物品一覧</p>
-      {error && <Text color="red.500">{error}</Text>} {/* エラーメッセージを表示 */}
-      {items.length === 0 ? (
-        <Text>申請中の物品はありません。</Text>
-      ) : (
-        items.map((item) => (
-          <Box
-            key={item.id}
-            borderWidth="1px"
-            borderRadius="lg"
-            p={4}
-            mb={4}
-            boxShadow="sm"
-          >
-            <VStack align="start">
-              <Image
-                src={item.image_path}
-                alt={item.name}
-                boxSize="150px"
-                objectFit="cover"
-                borderRadius="md"
-              />
-              <Link
-                to={`/items/${item.id}`}
-                style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "bold",
-                  color: "#3182ce", // Chakraのblue.600相当
-                  textDecoration: "none",
-                }}
-              >
-                {item.name}
-              </Link>
-              <Text fontSize="sm">申請日: {new Date(item.transaction_date).toLocaleDateString()}</Text>
-              <Text color={item.status === "承認待ち" ? "red.500" : "green.500"}>
-                {item.status}
-              </Text>
-              {item.status === "承認待ち" && (
-                <Button size="sm" colorScheme="red" onClick={() => handleCancel(item.id)}>
-                  キャンセル
-                </Button>
-              )}
-            </VStack>
-          </Box>
-        ))
-      )}
+      {error && <Text color="red.500">{error}</Text>}
+
+      {/* 申請中の物品 */}
+      <Heading size="md" mt={6} mb={1}>申請中の物品</Heading>
+      {items.length === 0 && <Text mb={2}>申請中の物品はありません。</Text>}
+      <Box borderWidth="1px" borderRadius="md" overflow="hidden" mb={6}>
+        <TableHeader headers={["名前", "申請日", "状態", "操作"]} />
+        {items.length === 0 ? (
+          <TableRow columns={["-", "-", "-", "-"]} />
+        ) : (
+          items.map((item) => (
+            <TableRow
+              key={item.id}
+              columns={[
+                item.name,
+                new Date(item.transaction_date).toLocaleDateString(),
+                item.status,
+                item.status === "承認待ち" ? (
+                  <Button size="sm" colorScheme="red" onClick={() => handleCancel(item.id)}>
+                    キャンセル
+                  </Button>
+                ) : (
+                  "-"
+                ),
+              ]}
+            />
+          ))
+        )}
+      </Box>
+
+      {/* 借用中の物品 */}
+      <Heading size="md" mt={6} mb={1}>借用中の物品</Heading>
+      {rentals.length === 0 && <Text mb={2}>借用中の物品はありません。</Text>}
+      <Box borderWidth="1px" borderRadius="md" overflow="hidden" mb={6}>
+        <TableHeader headers={["名前", "返却期限", "操作"]} />
+        {rentals.length === 0 ? (
+          <TableRow columns={["-", "-", "-"]} />
+        ) : (
+          rentals.map((rental) => (
+            <TableRow
+              key={rental.id}
+              columns={[
+                rental.name,
+                new Date(rental.return_deadline).toLocaleDateString(),
+                <Button size="sm" colorScheme="blue" onClick={() => handleReturn(rental.id)}>
+                  返却
+                </Button>,
+              ]}
+            />
+          ))
+        )}
+      </Box>
+
+      {/* 使用履歴 */}
+      <Heading size="md" mt={6} mb={1}>過去の使用履歴</Heading>
+      {history.length === 0 && <Text mb={2}>履歴がまだありません。</Text>}
+      <Box borderWidth="1px" borderRadius="md" overflow="hidden">
+        <TableHeader headers={["名前", "返却日"]} />
+        {history.length === 0 ? (
+          <TableRow columns={["-", "-"]} />
+        ) : (
+          history.map((record) => (
+            <TableRow
+              key={record.id}
+              columns={[
+                record.name,
+                new Date(record.returned_date).toLocaleDateString(),
+              ]}
+            />
+          ))
+        )}
+      </Box>
     </Box>
   );
 };

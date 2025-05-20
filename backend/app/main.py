@@ -50,16 +50,24 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid credentials")
     
     access_token = create_access_token(data={"sub": str(db_user.id)})
-    
-    response = JSONResponse(content={"message": "Login successful"})
+
+    response = JSONResponse(
+        content={
+            "message": "Login successful",
+            "user_id": db_user.id,  # ← フロント用に user_id を含める
+            "name": db_user.name    # 任意だがログイン表示などにも便利
+        }
+    )
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,  # 本番はTrue（HTTPS必須）
+        secure=False,  # 開発環境ではFalse、本番はTrue（HTTPS用）
         samesite="Lax",
-        max_age=60 * 60,
+        max_age=60 * 60,  # 1時間
     )
+    return response
+
 # secure=False：HTTPでもHTTPSでもクッキーが送信される（開発環境向け）
 # secure=True：HTTPS通信時のみクッキーがブラウザに送られる（本番環境向け）
     
@@ -110,6 +118,10 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_admin: mode
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User successfully deleted"}
+
+@app.get("/users/me", response_model=schemas.User)
+def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
 
 # カテゴリ関連のエンドポイント
 @app.post("/categories/", response_model=schemas.Category)

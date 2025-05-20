@@ -38,7 +38,7 @@ const SignUpPage = () => {
       const res = await axios.post("http://localhost:8000/users/", userData);
 
       alert(`サインアップ成功．ようこそ、${res.data.name} さん`);
-      navigate("/equipuments");
+      navigate("/login");
     } catch (error: any) {
       if (error.response?.data?.detail) {
         alert(`サインアップ失敗: ${error.response.data.detail}`);
@@ -67,17 +67,19 @@ const SignUpPage = () => {
             <Box w="full">
               <Text mb={2} color="gray.200">学年を選択：</Text>
               <HStack spacing={3} wrap="wrap">
-                {["U4", "M1", "M2", "OB_OG"].map((level) => (
-                  <Button
-                    key={level}
-                    onClick={() => setGrade(level)}
-                    colorScheme={grade === level ? "blue" : "gray"}
-                    variant={grade === level ? "solid" : "outline"}
-                    size="sm"
-                  >
-                    {level}
-                  </Button>
-                ))}
+              {["U4", "M1", "M2", "OB_OG"].map((level) => (
+              <Button
+                key={level}
+                onClick={() => setGrade(level)}
+                colorScheme={grade === level ? "blue" : "blue"}
+                variant={grade === level ? "solid" : "outline"}
+                size="sm"
+                color={grade === level ? "black" : "black."} 
+              >
+                {level}
+              </Button>
+            ))}
+
               </HStack>
             </Box>
             <Input
