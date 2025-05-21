@@ -119,8 +119,8 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_admin: mode
 
 # カテゴリ関連のエンドポイント
 @app.post("/categories/", response_model=schemas.Category)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)
-                    # current_admin: models.User = Depends(get_current_admin_user)
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db),
+                    current_admin: models.User = Depends(get_current_admin_user)
                     ):
     try:
         return crud.create_category(db=db, category=category)
@@ -175,14 +175,14 @@ def update_category(category_id: int, category: schemas.CategoryUpdate, db: Sess
 
 @app.get("/categories/", response_model=List[schemas.Category])
 def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), 
-                    # current_user: models.User = Depends(get_current_user)
+                    current_user: models.User = Depends(get_current_user)
                     ):
     categories = crud.get_categories(db, skip=skip, limit=limit)
     return categories
 
 @app.get("/categories/{category_id}", response_model=schemas.Category)
 def read_category(category_id: int, db: Session = Depends(get_db),
-                #   current_user: models.User = Depends(get_current_user)
+                  current_user: models.User = Depends(get_current_user)
                   ):
     db_category = crud.get_category(db, category_id=category_id)
     if db_category is None:
@@ -192,7 +192,7 @@ def read_category(category_id: int, db: Session = Depends(get_db),
 # アイテム関連のエンドポイント
 @app.post("/items/", response_model=schemas.Item)
 def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db), 
-                # current_admin: models.User = Depends(get_current_admin_user)
+                current_admin: models.User = Depends(get_current_admin_user)
                 ):
     return crud.create_item(db=db, item=item)
 
@@ -220,7 +220,7 @@ def read_items(
 
 @app.get("/items/{item_id}", response_model=schemas.Item)
 def read_item(item_id: int, db: Session = Depends(get_db),
-            #   current_user: models.User = Depends(get_current_user)
+              current_user: models.User = Depends(get_current_user)
               ):
     db_item = crud.get_item(db, item_id=item_id)
     if db_item is None:
@@ -255,3 +255,11 @@ def read_transaction(transaction_id: int, db: Session = Depends(get_db), current
 @app.post("/search-logs/", response_model=schemas.SearchLog)
 def create_search_log(search_log: schemas.SearchLogCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return crud.create_search_log(db=db, search_log=search_log)
+
+@app.get("/me", response_model=schemas.User)
+def read_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+@app.get("/dmin", response_model=schemas.User)
+def get_current_admin_user_info(current_admin: models.User = Depends(get_current_admin_user)):
+    return current_admin
