@@ -19,7 +19,8 @@ def create_user(db: Session, user: schemas.UserCreate):
         name=user.name,
         email=user.email,
         grade=user.grade,
-        password=hashed_pw  
+        password=hashed_pw,  
+        is_admin=user.is_admin
     )
     db.add(db_user)
     db.commit()
