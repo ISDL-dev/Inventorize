@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Heading, Image, Text, Button, Spinner } from "@chakra-ui/react";
+import { Box, Heading, Image, Text, Button, Input, Spinner } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import axios from "axios";
 
 //仮データ
 /*const equipuments = [
@@ -20,29 +19,76 @@ import axios from "axios";
 type Item = {
   id: number;
   name: string;
-  imageUrl: string;
+  image_path: string;
   location: string;
+  notes: string;
+  is_available: boolean;
+  category_name?: string;
 };
 
 const ItemDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [item, setItem] = useState<Item | null>(null);
+  const [reason, setReason] = useState("");
   const [isZoomed, setIsZoomed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false); // 編集モードの状態を追加
+  const [updatedItem, setUpdatedItem] = useState<Item | null>(null); // 編集した物品情報の状態を保持
 
   useEffect(() => {
     fetch(`http://localhost:8000/items/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setItem(data);
+        setUpdatedItem(data); // 編集用の初期状態として物品情報をセット
         setLoading(false);
       })
       .catch((err) => {
-        console.error("詳細取得エラー:", err);
+        console.error("詳細情報取得エラー:", err);
         setLoading(false);
       });
   }, [id]);
+
+  const handleBorrow = async () => {
+    if (!reason.trim()) {
+      alert("理由を入力してください");
+      return;
+    }
+    const user_id = 1; // ここは実際のユーザーIDを取得する必要がある
+    const token = localStorage.getItem("token"); // 取得方法はあなたの実装に合わせて
+    const requestData = {
+      user_id,
+      item_id: item!.id,
+      type: "borrow",
+      reason,
+      status: "申請中",
+    };
+    
+    const borrowedItem = {
+      id: item!.id,
+      name: item!.name,
+      image_path: `/images/${item!.image_path}`,
+      requestDate: requestData,
+      status: "承認待ち",
+    };
+
+    fetch(`http://localhost:8000/transactions/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      //body: JSON.stringify({ user_id, item_id: item?.id, reason,type: "borrow" }),
+      body: JSON.stringify(requestData), // ← 修正済みのリクエストデータを送信
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("借用リクエストに失敗しました");
+        alert("借用リクエストを送信しました");
+        navigate("/equipuments", { state: borrowedItem }); // 送信後にマイリストへ遷移
+      })
+      .catch(err => console.error(err));
+  };
 
   if(loading) {
     return <Spinner size="xl" />
@@ -52,18 +98,93 @@ const ItemDetailPage = () => {
   }
 
   return (
-    <Box p={8}>
-      <Heading mb={4}>{item.name}</Heading>
+    <Box p={8} position="relative">
+      {/* リスト風タイトル */}
+      <Box mb={8}>
+        <Text fontSize="2xl" fontWeight="bold">
+          <Box as="span"
+            color="gray.400"
+            cursor="pointer"
+            _hover={{ textDecoration: "underline" }}
+            onClick={() => navigate("/equipuments")}
+          >
+            Equipuments
+          </Box>
+          {" / "}
+          <Box as="span">{item.name}</Box>
+        </Text>
+      </Box>
       
       {/* 画像（クリックで拡大） */}
-      <Image src={item.imageUrl || "/images/noImage.jpg"} alt={item.name} boxSize="300px" objectFit="cover" mb={4} cursor="pointer" onClick={() => setIsZoomed(true)} onError={(e) => {(e.target as HTMLImageElement).src = "/images/noImage.jpg"}}/>
+      {/* <Image src={item.imageUrl || "/images/noImage.jpg"} alt={item.name} boxSize="300px" objectFit="cover" mb={4} cursor="pointer" onClick={() => setIsZoomed(true)} onError={(e) => {(e.target as HTMLImageElement).src = "/images/noImage.jpg"}}/>*/}
 
-      <Text fontSize="lg">保管場所: {item.location}</Text>
+      {/* <Text fontSize="lg">保管場所: {item.location}</Text> */}
 
-      {/* 戻るボタン */}
-      <Button mt={6} onClick={() => navigate("/equipuments")} color="black" bg="gray.300" _hover={{ bg: "gray.400"}}>
-         戻る（Equipumentsページに移動）
-      </Button>
+      <Box display="flex" gap={8} alignItems="flex-start">
+        {/* 画像 */}
+        <Image
+          src={`/images/${item.image_path || "noImage.jpg"}`}
+          alt={item.name}
+          boxSize="300px"
+          objectFit="cover"
+          cursor="pointer"
+          onClick={() => setIsZoomed(true)}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/images/noImage.jpg";
+          }}
+        />
+
+        {/* 情報パネル */}
+        <Box flex="1">
+        <Text fontSize="lg" mb={2}>
+            保管場所: {isEditing ? (
+              <Input
+                value={updatedItem?.location || ""}
+                onChange={(e) => setUpdatedItem({ ...updatedItem!, location: e.target.value })}
+                bg="white"
+              />
+            ) : (
+              item.location || "不明"
+            )}
+          </Text>
+
+          <Text fontSize="lg" mb={2}>
+            カテゴリ: {item.category_name || "未分類"}
+          </Text>
+
+          <Text fontSize="lg" mb={2}>
+            備考: {isEditing ? (
+              <Input
+                value={updatedItem?.notes || ""}
+                onChange={(e) => setUpdatedItem({ ...updatedItem!, notes: e.target.value })}
+                bg="white"
+              />
+            ) : (
+              item.notes || "備考なし"
+            )}
+          </Text>
+
+          {/* 借用理由欄（貸出可能な場合のみ表示） */}
+          {item.is_available && (
+            <Box mt={4}>
+              <Text mb={2}>借用理由:</Text>
+              <Input
+                placeholder="借用理由を入力"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                bg="white"
+              />
+            </Box>
+          )}
+
+          {item.is_available && (
+            <Button mt={6} color="black" bg="gray.300" _hover={{ bg: "gray.400"}} onClick={handleBorrow}>
+              借りる
+            </Button>
+          )}
+
+        </Box>
+      </Box>
 
       {/* 拡大表示（Modalの代替） */}
       {isZoomed && (
@@ -81,7 +202,7 @@ const ItemDetailPage = () => {
           onClick={() => setIsZoomed(false)}
         >
           <Image
-            src={item.imageUrl}
+            src={`/images/${item.image_path || "noImage.jpg"}`}
             alt={item.name}
             maxW="90%"
             maxH="90%"

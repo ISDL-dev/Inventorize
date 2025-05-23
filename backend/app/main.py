@@ -229,7 +229,9 @@ def read_item(item_id: int, db: Session = Depends(get_db),
 
 # トランザクション関連のエンドポイント
 @app.post("/transactions/", response_model=schemas.ItemTransaction)
-def create_transaction(transaction: schemas.ItemTransactionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def create_transaction(transaction: schemas.ItemTransactionCreate, db: Session = Depends(get_db), 
+                    #    current_user: models.User = Depends(get_current_user)
+                       ):
     return crud.create_transaction(db=db, transaction=transaction)
 
 @app.get("/transactions/", response_model=List[schemas.ItemTransaction])

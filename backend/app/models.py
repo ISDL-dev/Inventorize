@@ -69,6 +69,7 @@ class ItemTransaction(Base):
     reason = Column(String(255))
     item_condition = Column(String(255))
     notes = Column(Text)
+    status = Column(String(20), default="request")
     created_at = Column(DateTime, server_default=func.now())
 
     # リレーションシップ
