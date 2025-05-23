@@ -95,6 +95,7 @@ class ItemTransactionBase(BaseModel):
     reason: Optional[str] = None
     item_condition: Optional[str] = None
     notes: Optional[str] = None
+    status: Optional[str] = None
 
 class ItemTransactionCreate(ItemTransactionBase):
     pass
