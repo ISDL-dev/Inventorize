@@ -30,7 +30,7 @@ serializer = URLSafeTimedSerializer(SECRET_KEY)
 SMTP_SERVER = os.getenv("SMTP_SERVER")
 SMTP_PORT = int(os.getenv("SMTP_PORT"))
 SMTP_USER = os.getenv("SMTP_USER")
-# SMTP_PASSWORD=os.getenv("SMTP_PASSWORD")
+SMTP_PASSWORD=os.getenv("SMTP_PASSWORD")
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -72,38 +72,6 @@ def get_current_admin_user(
     return current_user
 
 # SMTPリレー方式
-def send_reset_email(user_email: str):
-    # パスワードリセットトークンを生成
-    token = serializer.dumps(user_email, salt="password-reset-salt")
-    reset_url = f"http://localhost:5173/reset-password?token={token}"
-
-    # メール本文をプレーンテキストで作成
-    text = f"""\
-パスワードリセットのリクエストがありました。
-
-以下のリンクから新しいパスワードを設定してください（有効期限: 30分）:
-
-{reset_url}
-
-このメールに心当たりがない場合は、無視してください。
-"""
-
-    message = MIMEText(text, "plain", "utf-8")
-    message["Subject"] = "パスワードリセット"
-    message["From"] = SMTP_USER
-    message["To"] = user_email
-
-    try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.sendmail(SMTP_USER, user_email, message.as_string())
-        print("パスワードリセットメールを送信しました。")
-    except Exception as e:
-        print(f"メール送信エラー: {e}")
-
-# 認証付きSMTP
 # def send_reset_email(user_email: str):
 #     # パスワードリセットトークンを生成
 #     token = serializer.dumps(user_email, salt="password-reset-salt")
@@ -127,14 +95,46 @@ def send_reset_email(user_email: str):
 
 #     try:
 #         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-#             server.ehlo()                      # Gmailでは必要なことがある
+#             server.ehlo()
 #             server.starttls()
-#             server.ehlo()                      # TLSのあと再度挨拶
-#             server.login(SMTP_USER, SMTP_PASSWORD)  # ここでアプリパスワードを使う
+#             server.ehlo()
 #             server.sendmail(SMTP_USER, user_email, message.as_string())
 #         print("パスワードリセットメールを送信しました。")
 #     except Exception as e:
 #         print(f"メール送信エラー: {e}")
+
+# 認証付きSMTP
+def send_reset_email(user_email: str):
+    # パスワードリセットトークンを生成
+    token = serializer.dumps(user_email, salt="password-reset-salt")
+    reset_url = f"http://localhost:5173/reset-password?token={token}"
+
+    # メール本文をプレーンテキストで作成
+    text = f"""\
+パスワードリセットのリクエストがありました。
+
+以下のリンクから新しいパスワードを設定してください（有効期限: 30分）:
+
+{reset_url}
+
+このメールに心当たりがない場合は、無視してください。
+"""
+
+    message = MIMEText(text, "plain", "utf-8")
+    message["Subject"] = "パスワードリセット"
+    message["From"] = SMTP_USER
+    message["To"] = user_email
+
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.ehlo()                      # Gmailでは必要なことがある
+            server.starttls()
+            server.ehlo()                      # TLSのあと再度挨拶
+            server.login(SMTP_USER, SMTP_PASSWORD)  # ここでアプリパスワードを使う
+            server.sendmail(SMTP_USER, user_email, message.as_string())
+        print("パスワードリセットメールを送信しました。")
+    except Exception as e:
+        print(f"メール送信エラー: {e}")
 
 def verify_reset_token(token: str, max_age: int = 1800) -> str:
     try:
