@@ -12,7 +12,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,36 +19,37 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    console.log("Email:", email);
-    console.log("Password:", password);
-  
+
     if (email.trim() !== "" && password.trim() !== "") {
       try {
         const response = await axios.post(
           "http://localhost:8000/login",
           {
-            email: email,
-            password: password,
+            email,
+            password,
           },
           {
-            withCredentials: true, // Cookieが必要な場合
-        }
+            withCredentials: true,
+          }
         );
-  
+
         if (response.status === 200) {
-          navigate("/equipuments");
+          const { user_id } = response.data;
+          if (user_id) {
+            localStorage.setItem("user_id", user_id.toString());
+            navigate("/equipuments");
+          } else {
+            alert("ログインは成功しましたが、ユーザーIDが取得できませんでした。");
+          }
         } else {
           alert("ログインに失敗しました");
         }
       } catch (error: any) {
         console.error("Login error:", error);
-  
+
         if (error.response?.status === 400) {
-          // 認証失敗（FastAPI 側で 400 を返している場合）
           alert("メールアドレスまたはパスワードが間違っています");
         } else {
-          // その他のエラー
           alert("ログイン中に予期しないエラーが発生しました");
         }
       }
@@ -57,8 +57,6 @@ const LoginPage = () => {
       alert("Emailとパスワードを入力してください");
     }
   };
-  
-  
 
   return (
     <Flex width="100vw" height="100vh" justify="center" align="center" bg="gray.700">
@@ -94,7 +92,6 @@ const LoginPage = () => {
             >
               Login
             </Button>
-            {/* リンク追加 */}
             <Box textAlign="center">
               <Text fontSize="sm" color="gray.300">
                 サインインがまだの方は{" "}
