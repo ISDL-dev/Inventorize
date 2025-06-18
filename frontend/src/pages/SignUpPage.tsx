@@ -7,6 +7,7 @@ import {
   Flex,
   Text,
   HStack,
+  Link,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -108,6 +109,14 @@ const SignUpPage = () => {
             >
               登録
             </Button>
+            <Box textAlign="center">
+              <Text fontSize="sm" color="gray.300">
+                ログインは{" "}
+                <Link color="teal.300" onClick={() => navigate("/login")}>
+                  こちら
+                </Link>
+              </Text>
+            </Box>
           </VStack>
         </form>
       </Box>
