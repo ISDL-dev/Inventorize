@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Box, Heading, Image, Text, Button, Input, Spinner } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 //仮データ
 /*const equipuments = [
@@ -19,24 +20,35 @@ import { useState, useEffect } from "react";
 type Item = {
   id: number;
   name: string;
+  category_id: number | null;
+  category?: { name: string };
   image_path: string;
-  location: string;
-  notes: string;
   is_available: boolean;
-  category_name?: string;
+  location: string | null;
+  notes: string | null;
 };
+
+// カテゴリの型定義
+type Category = {
+  id: number;
+  name: string;
+};
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const ItemDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
   const [item, setItem] = useState<Item | null>(null);
   const [reason, setReason] = useState("");
   const [isZoomed, setIsZoomed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false); // 編集モードの状態を追加
   const [updatedItem, setUpdatedItem] = useState<Item | null>(null); // 編集した物品情報の状態を保持
 
-  useEffect(() => {
+  /*useEffect(() => {
     fetch(`http://localhost:8000/items/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -49,6 +61,48 @@ const ItemDetailPage = () => {
         setLoading(false);
       });
   }, [id]);
+  */
+
+  // データ取得
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // 物品データの取得
+        const itemsResponse = await axios.get(`${API_URL}/items/${id}`, {
+          withCredentials: true
+        });
+          
+        // カテゴリデータの取得
+        const categoriesResponse = await axios.get(`${API_URL}/categories/`, {
+          withCredentials: true
+        });
+          
+        // カテゴリ情報を物品データに紐づける
+        const categoriesMap = new Map<number, Category>();
+        categoriesResponse.data.forEach((category: Category) => {
+          categoriesMap.set(category.id, category);
+        });
+
+        const itemData: Item = itemsResponse.data;
+          
+        const category = itemData.category_id ? categoriesMap.get(itemData.category_id) : undefined;
+
+        const itemWithCategory = { ...itemData, category };
+
+        setItem(itemWithCategory);
+        setUpdatedItem(itemWithCategory);
+        setCategories(categoriesResponse.data);
+      } catch (err) {
+        console.error("データ取得エラー:", err);
+        setError("データの取得に失敗しました。");
+      } finally {
+        setLoading(false);
+      }
+      };
+      
+      fetchData();
+    }, [id]);
 
   const handleBorrow = async () => {
     if (!reason.trim()) {
@@ -73,19 +127,18 @@ const ItemDetailPage = () => {
       status: "承認待ち",
     };
 
-    fetch(`http://localhost:8000/transactions/`, {
+    fetch(`${API_URL}/transactions/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
-      //body: JSON.stringify({ user_id, item_id: item?.id, reason,type: "borrow" }),
-      body: JSON.stringify(requestData), // ← 修正済みのリクエストデータを送信
+      body: JSON.stringify(requestData),
     })
       .then(res => {
         if (!res.ok) throw new Error("借用リクエストに失敗しました");
         alert("借用リクエストを送信しました");
-        navigate("/equipuments", { state: borrowedItem }); // 送信後にマイリストへ遷移
+        navigate("/equipuments", { state: borrowedItem });
       })
       .catch(err => console.error(err));
   };
@@ -149,7 +202,7 @@ const ItemDetailPage = () => {
           </Text>
 
           <Text fontSize="lg" mb={2}>
-            カテゴリ: {item.category_name || "未分類"}
+            カテゴリ: {item.category?.name || "未分類"}
           </Text>
 
           <Text fontSize="lg" mb={2}>
