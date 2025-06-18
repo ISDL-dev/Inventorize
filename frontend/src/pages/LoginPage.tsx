@@ -94,7 +94,7 @@ const LoginPage = () => {
             </Button>
             <Box textAlign="center">
               <Text fontSize="sm" color="gray.300">
-                サインインがまだの方は{" "}
+                サインアップがまだの方は{" "}
                 <Link color="teal.300" onClick={() => navigate("/signup")}>
                   こちら
                 </Link>
