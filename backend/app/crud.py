@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from . import models, schemas, utils
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -148,12 +148,18 @@ def delete_item(db: Session, item_id: int):
 def get_transaction(db: Session, transaction_id: int):
     return db.query(models.ItemTransaction).filter(models.ItemTransaction.id == transaction_id).first()
 
-def get_transactions(db: Session, skip: int = 0, limit: int = 100, user_id: Optional[int] = None, item_id: Optional[int] = None):
-    query = db.query(models.ItemTransaction)
+def get_transactions(db: Session, skip: int = 0, limit: int = 100, user_id: Optional[int] = None, item_id: Optional[int] = None, status: Optional[str] = None):
+    query = db.query(models.ItemTransaction).options(
+        joinedload(models.ItemTransaction.user),
+        joinedload(models.ItemTransaction.item).joinedload(models.Item.category)
+    )
     if user_id:
         query = query.filter(models.ItemTransaction.user_id == user_id)
     if item_id:
         query = query.filter(models.ItemTransaction.item_id == item_id)
+    if status:
+        query = query.filter(models.ItemTransaction.status == status)
+
     return query.offset(skip).limit(limit).all()
 
 def create_transaction(db: Session, transaction: schemas.ItemTransactionCreate):

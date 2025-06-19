@@ -109,7 +109,7 @@ const ItemDetailPage = () => {
       alert("理由を入力してください");
       return;
     }
-    const user_id = 1; // ここは実際のユーザーIDを取得する必要がある
+    const user_id = Number(localStorage.getItem("user_id"));
     const token = localStorage.getItem("token"); // 取得方法はあなたの実装に合わせて
     const requestData = {
       user_id,

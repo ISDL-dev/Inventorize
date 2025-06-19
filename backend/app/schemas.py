@@ -83,6 +83,7 @@ class Item(ItemBase):
     registration_date: datetime
     created_at: datetime
     updated_at: datetime
+    category: Optional[Category]
 
     class Config:
         from_attributes = True
@@ -113,6 +114,10 @@ class ItemTransaction(ItemTransactionBase):
 
     class Config:
         from_attributes = True
+
+class ItemTransactionWithDetails(ItemTransaction):
+    item: Optional[Item]
+    user: Optional[User]
 
 # SearchLog関連のスキーマ
 class SearchLogBase(BaseModel):
