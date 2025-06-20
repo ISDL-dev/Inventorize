@@ -310,6 +310,16 @@ def update_transaction_status(transaction_id: int, status: str, db: Session = De
     
     return tx
 
+@app.post("/cancel/{transaction_id}")
+def cancel_transaction(transaction_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    transaction = db.query(models.ItemTransaction).filter(models.ItemTransaction.id == transaction_id).first()
+    if not transaction or transaction.status != "request":
+        raise HTTPException(status_code=404, detail="キャンセルできる申請が見つかりません")
+    
+    transaction.status = None
+    db.commit()
+    return {"message": "申請をキャンセルしました"}
+
 @app.post("/return/{transaction_id}")
 def return_item(transaction_id: int, db: Session = Depends(get_db)):
     tx = crud.get_transaction(db, transaction_id)

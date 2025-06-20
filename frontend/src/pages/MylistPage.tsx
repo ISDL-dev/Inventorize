@@ -66,7 +66,7 @@ const MylistPage = () => {
 
     try {
       const res = await axios.get("http://localhost:8000/transactions/", {
-        params: { user_id: userId },
+        params: { user_id: userId, status: "request" },
         withCredentials: true,
       });
       let transactions: Transaction[] = res.data;
@@ -108,10 +108,20 @@ const MylistPage = () => {
     fetchData();
   }, [newItem]);
 
-  const handleCancel = (id: number) => {
+  const handleCancel = async (id: number) => {
     const confirmed = window.confirm("本当にキャンセルしてもよろしいですか？");
-    if (confirmed) {
-      setItems((prev) => prev.filter((item) => item.id !== id));
+    if (!confirmed) return;
+
+    try {
+      await axios.post(`http://localhost:8000/cancel/${id}`, {}, {
+        withCredentials: true,
+      });
+
+      // 状態を再取得することで UI も更新
+      fetchData();
+    } catch (err) {
+      alert("キャンセルに失敗しました。");
+      console.error("キャンセルエラー:", err);
     }
   };
 
@@ -154,8 +164,8 @@ const MylistPage = () => {
                 item.item?.name ?? "不明",
                 new Date(item.transaction_date).toLocaleDateString(),
                 item.status,
-                item.status === "承認待ち" ? (
-                  <Button size="sm" colorScheme="red" onClick={() => handleCancel(item.id)}>
+                item.status === "request" ? (
+                  <Button size="sm" bg="red.500" colorScheme="red" onClick={() => handleCancel(item.id)}>
                     キャンセル
                   </Button>
                 ) : (
