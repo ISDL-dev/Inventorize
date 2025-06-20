@@ -7,68 +7,61 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const ChangePasswordPage = () => {
-  const [oldPassword, setOldPassword] = useState("");
+const ResetPasswordPage = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const navigate = useNavigate();
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      alert("すべての項目を入力してください。");
+    if (!newPassword || !confirmPassword) {
+      setError("すべての項目を入力してください。");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("新しいパスワードが一致しません。");
+      setError("パスワードが一致しません。");
       return;
     }
 
     try {
-      await axios.post("http://localhost:8000/change-password", {
-        current_password: oldPassword,
+      await axios.post("http://localhost:8000/reset-password", {
+        token,
         new_password: newPassword,
-      }, { withCredentials: true });
-
-      alert("パスワードが変更されました。");
+      });
+      alert("パスワードがリセットされました。ログインしてください。");
+      navigate("/login");
     } catch (err: any) {
-      alert(err.response?.data?.detail || "パスワード変更に失敗しました。");
+      console.error(err);
+      setError(err.response?.data?.detail || "リセットに失敗しました。");
     }
   };
 
-
   return (
-    <Box bg="gray.50" minH="100vh" pt={8} pr={8}>
-      {/* タイトル部分 */}
+    <Box bg="gray.50" minH="100vh" pt={8} px={8}>
       <Box mb={6}>
         <Heading size="xl" color="gray.800">
-          Change Password
+          パスワード再設定
         </Heading>
       </Box>
 
-      {/* フォーム部分（枠なし） */}
-      <Box
-        p={0}
-        bg="transparent"
-        boxShadow="none"
-        maxW="800px"
-        w="100%"
-      >
+      <Box p={0} bg="transparent" boxShadow="none" maxW="800px" w="100%">
         <Text fontSize="lg" fontWeight="bold" mb={6}>
-          以下の項目を入力してください。
+          新しいパスワードを入力してください。
         </Text>
+
+        {error && <Text color="red.500" mb={3}>{error}</Text>}
+
         <form onSubmit={handleSubmit}>
           <VStack spacing={5}>
-            <Input
-              placeholder="元のパスワード"
-              type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              size="lg"
-            />
             <Input
               placeholder="新しいパスワード"
               type="password"
@@ -92,6 +85,7 @@ const ChangePasswordPage = () => {
               fontWeight="bold"
               size="lg"
               mt={2}
+              isDisabled={!token}
             >
               変更
             </Button>
@@ -102,4 +96,4 @@ const ChangePasswordPage = () => {
   );
 };
 
-export default ChangePasswordPage;
+export default ResetPasswordPage;

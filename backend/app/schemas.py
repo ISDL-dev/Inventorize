@@ -29,6 +29,7 @@ class UserUpdate(BaseModel):
     grade: GradeEnum
     is_admin: Optional[bool] = None
     is_active: Optional[bool] = None
+    password: Optional[str] = None
 
 class User(UserBase):
     id: int
@@ -39,6 +40,14 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 # Category関連のスキーマ
 class CategoryBase(BaseModel):

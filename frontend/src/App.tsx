@@ -11,6 +11,7 @@ import MylistPage from "./pages/MylistPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordpage";
+import ResetPasswordPage from "./pages/ResetPasswordpage";
 
 import AddEquipumentPage from "./pages/AddEquipmentpage";
 import EditEquipumentPage from "./pages/EditEquipmentpage";
@@ -30,7 +31,8 @@ function AppContent() {
     location.pathname === "/" ||
     location.pathname === "/login" ||
     location.pathname === "/signup"||
-    location.pathname === "/forgot-password";
+    location.pathname === "/forgot-password"||
+    location.pathname.startsWith("/reset-password");
 
   if (isLoginPage) {
     return (
@@ -39,6 +41,7 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     );
   }

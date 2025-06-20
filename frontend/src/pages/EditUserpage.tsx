@@ -39,6 +39,7 @@ import {
     const [name, setName] = useState("");
     const [grade, setGrade] = useState("");
     const [email, setEmail] = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
     const [isActive, setIsActive] = useState(true);
   
@@ -111,6 +112,7 @@ import {
           name,
           grade,
           email,
+          ...(newPassword && { password: newPassword }),
           is_admin: isAdmin,
           is_active: isActive
         };
@@ -264,6 +266,17 @@ import {
             <Input 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
+              bg="white"
+              isDisabled={saving}
+            />
+          </Box>
+
+          <Box mb={4}>
+            <Text fontWeight="bold" mb={1}>パスワード：</Text>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               bg="white"
               isDisabled={saving}
             />

@@ -39,6 +39,11 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if db_user:
         update_data = user.dict(exclude_unset=True)
+
+        # パスワードが含まれている場合はハッシュ化
+        if "password" in update_data:
+            update_data["password"] = utils.hash_password(update_data.pop("password"))
+ 
         for key, value in update_data.items():
             setattr(db_user, key, value)
         db.commit()
