@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from . import crud, models, schemas, scheduler
 from .database import engine, get_db
-from .utils import get_current_user, create_access_token, get_current_admin_user, send_reset_email, hash_password, verify_reset_token
+from .utils import verify_password, get_current_user, create_access_token, get_current_admin_user, send_reset_email, hash_password, verify_reset_token
 
 from datetime import datetime
 import pytz
@@ -334,6 +334,19 @@ def return_item(transaction_id: int, db: Session = Depends(get_db)):
 def create_search_log(search_log: schemas.SearchLogCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return crud.create_search_log(db=db, search_log=search_log)
 
+@app.post("/change-password")
+def change_password(
+    req: schemas.ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if not verify_password(req.current_password, current_user.password):
+        raise HTTPException(status_code=400, detail="現在のパスワードが正しくありません")
+
+    current_user.password = hash_password(req.new_password)
+    db.commit()
+    return {"message": "パスワードを変更しました"}
+
 @app.post("/forgot-password")
 def forgot_password(email: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_email(db, email=email)
@@ -344,19 +357,19 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     return {"message": "リセットリンクを送信しました。"}
 
 @app.post("/reset-password")
-def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+def reset_password(req: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
     try:
-        email = verify_reset_token(token)
-    except Exception as e:
+        email = verify_reset_token(req.token)
+    except Exception:
         raise HTTPException(status_code=400, detail="トークンが無効または期限切れです")
 
     user = crud.get_user_by_email(db, email=email)
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
-    user.hashed_password = hash_password(new_password)
+    user.password = hash_password(req.new_password)
     db.commit()
-    return {"message": "パスワードをリセットしました"}
+    return {"message": "パスワードを変更しました"}
 
 @app.get("/me", response_model=schemas.User)
 def read_me(current_user: models.User = Depends(get_current_user)):
