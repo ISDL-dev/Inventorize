@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError 
 from typing import List, Optional
 from datetime import timedelta
@@ -11,6 +11,8 @@ from . import crud, models, schemas, scheduler
 from .database import engine, get_db
 from .utils import get_current_user, create_access_token, get_current_admin_user, send_reset_email, hash_password, verify_reset_token
 
+from datetime import datetime
+import pytz
 
 # データベーステーブルの作成
 models.Base.metadata.create_all(bind=engine)
@@ -246,24 +248,86 @@ def create_transaction(transaction: schemas.ItemTransactionCreate, db: Session =
                        ):
     return crud.create_transaction(db=db, transaction=transaction)
 
-@app.get("/transactions/", response_model=List[schemas.ItemTransaction])
+@app.get("/transactions/", response_model=List[schemas.ItemTransactionWithDetails])
 def read_transactions(
     skip: int = 0, 
     limit: int = 100, 
     user_id: Optional[int] = None,
     item_id: Optional[int] = None,
+    status: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    transactions = crud.get_transactions(db, skip=skip, limit=limit, user_id=user_id, item_id=item_id)
-    return transactions
+    query = db.query(models.ItemTransaction)\
+        .options(
+            joinedload(models.ItemTransaction.item).joinedload(models.Item.category),
+            joinedload(models.ItemTransaction.user)
+        )
 
-@app.get("/transactions/{transaction_id}", response_model=schemas.ItemTransaction)
-def read_transaction(transaction_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    db_transaction = crud.get_transaction(db, transaction_id=transaction_id)
-    if db_transaction is None:
+    if user_id:
+        query = query.filter(models.ItemTransaction.user_id == user_id)
+    if item_id:
+        query = query.filter(models.ItemTransaction.item_id == item_id)
+    if status:
+        query = query.filter(models.ItemTransaction.status == status)
+
+    return query.offset(skip).limit(limit).all()
+
+@app.get("/transactions/", response_model=List[schemas.ItemTransactionWithDetails])
+def get_transactions(user_id: Optional[int] = None, type: Optional[str] = None, db: Session = Depends(get_db)):
+    query = db.query(models.ItemTransaction)
+
+    if user_id:
+        query = query.filter(models.ItemTransaction.user_id == user_id)
+
+    if type:
+        query = query.filter(models.ItemTransaction.type == type)
+
+    return query.order_by(models.ItemTransaction.transaction_date.desc()).all()
+
+@app.patch("/transactions/{transaction_id}", response_model=schemas.ItemTransaction)
+def update_transaction_status(transaction_id: int, status: str, db: Session = Depends(get_db)):
+    tx = crud.get_transaction(db, transaction_id)
+    if not tx:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    return db_transaction
+
+    tx.status = status
+
+    # 貸出リクエストの承認時
+    if status == "approved":
+        item = db.query(models.Item).filter(models.Item.id == tx.item_id).first()
+        if item:
+            item.is_available = False
+
+    # 却下時は在庫を元に戻す
+    elif status == "rejected":
+        item = db.query(models.Item).filter(models.Item.id == tx.item_id).first()
+        if item:
+            item.is_available = True
+
+    db.commit()
+    db.refresh(tx)
+    
+    return tx
+
+@app.post("/return/{transaction_id}")
+def return_item(transaction_id: int, db: Session = Depends(get_db)):
+    tx = crud.get_transaction(db, transaction_id)
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    tx.status = "returned"
+    tx.returned_date = datetime.now()
+        # jst = pytz.timezone("Asia/Tokyo")
+    # tx.returned_date = datetime.now(jst)
+
+    item = db.query(models.Item).filter(models.Item.id == tx.item_id).first()
+    if item:
+        item.is_available = True
+
+    db.commit()
+    db.refresh(tx)
+    return {"message": "返却完了", "transaction_id": tx.id}
 
 # 検索ログ作成エンドポイント
 @app.post("/search-logs/", response_model=schemas.SearchLog)

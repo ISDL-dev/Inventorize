@@ -57,54 +57,54 @@ const MylistPage = () => {
   const [history, setHistory] = useState<History[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchData = async () => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      setError("ユーザー情報が見つかりません。ログインし直してください。");
+      return;
+    }
+
+    try {
+      const res = await axios.get("http://localhost:8000/transactions/", {
+        params: { user_id: userId },
+        withCredentials: true,
+      });
+      let transactions: Transaction[] = res.data;
+      if (newItem && !transactions.find((item) => item.id === newItem.id)) {
+        transactions = [...transactions, newItem];
+      }
+      setItems(transactions);
+
+      const rentalRes = await axios.get("http://localhost:8000/transactions/", {
+        params: { user_id: userId, status: "approved" },
+        withCredentials: true,
+      });
+      setRentals(
+        rentalRes.data.map((t: any) => ({
+          id: t.id,
+          name: t.item?.name,
+          return_deadline: t.return_deadline,
+        }))
+      );
+
+      const historyRes = await axios.get("http://localhost:8000/transactions/", {
+        params: { user_id: userId, status: "returned" },
+        withCredentials: true,
+      });
+      setHistory(
+        historyRes.data.map((h: any) => ({
+          id: h.id,
+          item: h.item,
+          returned_date: h.returned_date,
+        }))
+      );
+    } catch (err: any) {
+      console.error("データ取得エラー:", err);
+      setError(err.response?.data?.detail || "データの取得に失敗しました。");
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      const userId = localStorage.getItem("user_id");
-      if (!userId) {
-        setError("ユーザー情報が見つかりません。ログインし直してください。");
-        return;
-      }
-
-      try {
-        const res = await axios.get("http://localhost:8000/transactions/", {
-          params: { user_id: userId },
-          withCredentials: true,
-        });
-        let transactions: Transaction[] = res.data;
-        if (newItem && !transactions.find((item) => item.id === newItem.id)) {
-          transactions = [...transactions, newItem];
-        }
-        setItems(transactions);
-
-        const rentalRes = await axios.get("http://localhost:8000/transactions/", {
-          params: { user_id: userId, status: "借用中" },
-          withCredentials: true,
-        });
-        setRentals(
-          rentalRes.data.map((t: any) => ({
-            id: t.id,
-            name: t.name,
-            return_deadline: t.return_deadline,
-          }))
-        );
-
-        const historyRes = await axios.get("http://localhost:8000/transactions/", {
-          params: { user_id: userId, status: "返却済み" },
-          withCredentials: true,
-        });
-        setHistory(
-          historyRes.data.map((h: any) => ({
-            id: h.id,
-            name: h.name,
-            returned_date: h.returned_date,
-          }))
-        );
-      } catch (err: any) {
-        console.error("データ取得エラー:", err);
-        setError(err.response?.data?.detail || "データの取得に失敗しました。");
-      }
-    };
-
     fetchData();
   }, [newItem]);
 
@@ -127,6 +127,7 @@ const MylistPage = () => {
       );
       setRentals((prev) => prev.filter((r) => r.id !== transactionId));
       alert("返却が完了しました。");
+      fetchData();
     } catch (err) {
       alert("返却に失敗しました。");
       console.error("返却エラー:", err);
@@ -150,7 +151,7 @@ const MylistPage = () => {
             <TableRow
               key={item.id}
               columns={[
-                item.name,
+                item.item?.name ?? "不明",
                 new Date(item.transaction_date).toLocaleDateString(),
                 item.status,
                 item.status === "承認待ち" ? (
@@ -180,7 +181,7 @@ const MylistPage = () => {
               columns={[
                 rental.name,
                 new Date(rental.return_deadline).toLocaleDateString(),
-                <Button size="sm" colorScheme="blue" onClick={() => handleReturn(rental.id)}>
+                <Button size="sm" bg="blue.500" colorScheme="blue" onClick={() => handleReturn(rental.id)}>
                   返却
                 </Button>,
               ]}
@@ -201,7 +202,7 @@ const MylistPage = () => {
             <TableRow
               key={record.id}
               columns={[
-                record.name,
+                record.item?.name ?? "不明",
                 new Date(record.returned_date).toLocaleDateString(),
               ]}
             />
