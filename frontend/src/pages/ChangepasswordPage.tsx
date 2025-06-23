@@ -9,6 +9,8 @@ import {
 import { useState } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ChangePasswordPage = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -28,7 +30,7 @@ const ChangePasswordPage = () => {
     }
 
     try {
-      await axios.post("http://localhost:8000/change-password", {
+      await axios.post(`${API_URL}/change-password`, {
         current_password: oldPassword,
         new_password: newPassword,
       }, { withCredentials: true });

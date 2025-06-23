@@ -22,6 +22,8 @@ interface History {
   returned_date: string;
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const TableHeader = ({ headers }: { headers: string[] }) => (
   <Flex
     px={4}
@@ -65,7 +67,7 @@ const MylistPage = () => {
     }
 
     try {
-      const res = await axios.get("http://localhost:8000/transactions/", {
+      const res = await axios.get(`${API_URL}/transactions/`, {
         params: { user_id: userId, status: "request" },
         withCredentials: true,
       });
@@ -75,7 +77,7 @@ const MylistPage = () => {
       }
       setItems(transactions);
 
-      const rentalRes = await axios.get("http://localhost:8000/transactions/", {
+      const rentalRes = await axios.get(`${API_URL}/transactions/`, {
         params: { user_id: userId, status: "approved" },
         withCredentials: true,
       });
@@ -87,7 +89,7 @@ const MylistPage = () => {
         }))
       );
 
-      const historyRes = await axios.get("http://localhost:8000/transactions/", {
+      const historyRes = await axios.get(`${API_URL}/transactions/`, {
         params: { user_id: userId, status: "returned" },
         withCredentials: true,
       });
@@ -113,7 +115,7 @@ const MylistPage = () => {
     if (!confirmed) return;
 
     try {
-      await axios.post(`http://localhost:8000/cancel/${id}`, {}, {
+      await axios.post(`${API_URL}/cancel/${id}`, {}, {
         withCredentials: true,
       });
 
@@ -131,7 +133,7 @@ const MylistPage = () => {
 
     try {
       await axios.post(
-        `http://localhost:8000/return/${transactionId}`,
+        `${API_URL}/return/${transactionId}`,
         {},
         { withCredentials: true }
       );
@@ -200,7 +202,7 @@ const MylistPage = () => {
         )}
       </Box>
 
-      {/* 使用履歴 */}
+      {/* 使用履歴
       <Heading size="md" mt={6} mb={1}>過去の使用履歴</Heading>
       {history.length === 0 && <Text mb={2}>履歴がまだありません。</Text>}
       <Box borderWidth="1px" borderRadius="md" overflow="hidden">
@@ -218,7 +220,7 @@ const MylistPage = () => {
             />
           ))
         )}
-      </Box>
+      </Box> */}
     </Box>
   );
 };

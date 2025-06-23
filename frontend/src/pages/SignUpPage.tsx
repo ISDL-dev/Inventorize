@@ -13,6 +13,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const SignUpPage = () => {
   const [name, setName] = useState("");
   const [grade, setGrade] = useState(""); // ← ここは選択ボタンで設定
@@ -36,7 +38,7 @@ const SignUpPage = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:8000/users/", userData);
+      const res = await axios.post(`${API_URL}/users/`, userData);
 
       alert(`サインアップ成功．ようこそ、${res.data.name} さん`);
       navigate("/login");

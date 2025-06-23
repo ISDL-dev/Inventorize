@@ -10,6 +10,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; // ★ 追加
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -21,7 +23,7 @@ const ForgotPasswordPage = () => {
     setError(null);
 
     try {
-      await axios.post("http://localhost:8000/forgot-password", null, {
+      await axios.post(`${API_URL}/forgot-password`, null, {
         params: { email },
         withCredentials: true,
       });

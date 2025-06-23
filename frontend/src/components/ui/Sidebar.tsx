@@ -3,13 +3,15 @@ import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Sidebar = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/me", {
+        const res = await axios.get(`${API_URL}/me`, {
           withCredentials: true,
         });
         setIsAdmin(res.data.is_admin);

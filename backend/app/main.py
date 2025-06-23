@@ -1,3 +1,4 @@
+import os
 from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,6 +14,8 @@ from .utils import verify_password, get_current_user, create_access_token, get_c
 
 from datetime import datetime
 import pytz
+from dotenv import load_dotenv
+load_dotenv()
 
 # データベーステーブルの作成
 models.Base.metadata.create_all(bind=engine)
@@ -29,7 +32,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[os.getenv("FRONTEND_URL")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -317,6 +320,12 @@ def cancel_transaction(transaction_id: int, db: Session = Depends(get_db), curre
         raise HTTPException(status_code=404, detail="キャンセルできる申請が見つかりません")
     
     transaction.status = None
+
+    # キャンセル時に item の is_available を True に戻す
+    item = db.query(models.Item).filter(models.Item.id == transaction.item_id).first()
+    if item:
+        item.is_available = True
+
     db.commit()
     return {"message": "申請をキャンセルしました"}
 

@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 # 環境変数を読み込む
 load_dotenv()
 
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 # データベース接続情報
 MYSQL_USER = os.getenv("MYSQL_USER")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
@@ -107,7 +109,7 @@ def get_current_admin_user(
 def send_reset_email(user_email: str):
     # パスワードリセットトークンを生成
     token = serializer.dumps(user_email, salt="password-reset-salt")
-    reset_url = f"http://localhost:5173/reset-password?token={token}"
+    reset_url = f"{FRONTEND_URL}/reset-password?token={token}"
 
     # メール本文をプレーンテキストで作成
     text = f"""\
